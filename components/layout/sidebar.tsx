@@ -4,6 +4,7 @@ import { UserFront } from "@/types/users";
 import { LinkWithChildren, LinkWithoutChildren } from "./sidebar-routes";
 import { routes } from "@/app/routes";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Props {
   user: UserFront | null;
@@ -25,15 +26,19 @@ export function SideBarMenu({ user }: Props) {
       >
         <div className="ml-[24px] flex gap-x-1 items-center mt-5 mb-2">
           {/* <img src="/landing-logo.png" alt="" className="h-[24px]" /> */}
-          <img
+          <Image
             src="/logo.png"
             alt="logo"
             className="h-[24px] block dark:hidden"
+            width={24}
+            height={24}
           />
-          <img
+          <Image
             src="/logo.png"
             alt="logo"
             className="h-[24px] hidden dark:block"
+            width={24}
+            height={24}
           />
           <h1 className="font-semibold text-xl">Portal Devio</h1>
         </div>

@@ -4,9 +4,7 @@ import { signOut } from "@/app/login/actions";
 
 export default function Home() {
   const logout = async () => {
-    console.log('en el logaut1');
     await signOut();
-    console.log('en el logaut2');
   }
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">

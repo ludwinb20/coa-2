@@ -39,7 +39,6 @@ export const DashboardContent = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-white">
       <div className="w-full max-w-3xl p-6 bg-black text-white shadow-md rounded-md">
-        
         <Button onClick={handleLogout}>Logout</Button>
       </div>
     </div>

@@ -15,12 +15,13 @@ import { ChevronDownIcon, PersonIcon } from "@radix-ui/react-icons";
 import { Switch } from "../ui/switch";
 import { useTheme } from "next-themes";
 import {signOut} from "@/app/login/actions";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useSession } from "@/app/session-provider";
 import { LogOut, PlusIcon } from "lucide-react";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { toast } from "sonner";
 import { UserFront } from "@/types/users";
+import { createClient } from "@/utils/supabase/client";
 
 
 interface Props {
@@ -35,9 +36,11 @@ export const ProfileDropdown = ({}: Props) => {
 
   const firstLetter = user?.profile?.full_name?.toUpperCase() ?? "NA";
   const router = useRouter();
-  
+
   const handleLogout = async () => {
-    await signOut();
+    // await signOut();
+    const supabase = createClient()
+    const result = await supabase.auth.signOut()
     router.push("/login");
   };
 

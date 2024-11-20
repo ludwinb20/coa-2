@@ -33,13 +33,12 @@ export const Login = () => {
 
   const { user } = useSession();
   const router = useRouter();
-  console.log(user)
   
-  useEffect(() => {
-    if (user) {
-      router.push('/dashboard');
-    }
-  }, [user, router]);
+  // useEffect(() => {
+  //   if (user) {
+  //     router.push('/dashboard');
+  //   }
+  // }, [user, router]);
 
   const hacerlogin = async (data: any) => {
     try {
@@ -58,7 +57,7 @@ export const Login = () => {
       }
 
       if (authData?.user) {
-        router.push('/dashboard');
+        window.location.reload();
       }
     } catch (err) {
       setError('Error inesperado al iniciar sesión');

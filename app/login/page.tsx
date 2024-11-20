@@ -15,14 +15,19 @@
 
 import { ReactNode } from "react";
 import { Login } from '../../components/login/login';
+import { getUser } from "@/actions/user";
+import { redirect } from "next/navigation";
 
 interface Props {
   children: ReactNode;
 }
 
-export default function Page({  }: Props) {
+export default async function Page({  }: Props) {
+  const userResponse = await getUser();
+  if(userResponse.data){
+    return redirect('/dashboard');
+  }
     return (
-      
         <div className="w-full h-full bg-primary flex items-center justify-center col-span-1">
           <Login/>
         </div>

@@ -9,7 +9,6 @@ export const getValidSubdomain = (host?: string | null) => {
 
   if (host) {
     const domainParts = host.split('.');
-    console.log(host, domainParts)
     if (domainParts.length === 1) {
       // Caso especial para localhost sin puerto
       baseDomain = host;
@@ -32,10 +31,6 @@ export const getValidSubdomain = (host?: string | null) => {
       }
     }
   }
-
-  console.log("************");
-  console.log(subdomain, baseDomain);
-  console.log("************");
 
   return { subdomain, baseDomain };
 };
