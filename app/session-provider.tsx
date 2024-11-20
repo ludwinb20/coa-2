@@ -1,41 +1,38 @@
 'use client';
-import { createContext, ReactNode, useContext, useState, useEffect } from "react";
-import { UserFront } from "@/types/users";
 
-interface SessionContextProps {
-  user: UserFront | null; 
-}
+import { createContext, useContext, useEffect, useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
-const SessionContext = createContext<SessionContextProps>({
-  user: null,
-});
+const SessionContext = createContext<{ user: any | null }>({ user: null });
 
-export const useSession = () => useContext(SessionContext);
+export function SessionProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any | null>(null);
+  const supabase = createClient();
 
-interface SessionContextProviderProps {
-  children: ReactNode;
-  user: UserFront | null;
-}
+  useEffect(() => {
+    // Obtener el usuario actual
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
 
-export function SessionProvider({children, user}: SessionContextProviderProps) {
-  const [userData, setUserData] = useState<UserFront | null>(user);
+    // Escuchar cambios en la autenticación
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
 
-  // Aquí podrías manejar la lógica asincrónica si es necesario
-  // useEffect(() => {
-  //   const fetchUser = async () => {
-  //     const userData = await getUser(); // Llama a tu función asincrónica aquí
-  //     setUserData(userData);
-  //   };
-
-  //   if (!user) {
-  //     fetchUser();
-  //   }
-  // }, [user]);
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
-    <SessionContext.Provider value={{ user: userData }}>
+    <SessionContext.Provider value={{ user }}>
       {children}
     </SessionContext.Provider>
   );
 }
+
+export const useSession = () => {
+  return useContext(SessionContext);
+};
 

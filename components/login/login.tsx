@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card"
 import { Input } from "../ui/input"
@@ -11,7 +12,7 @@ import * as yup from 'yup'
 import { useSession } from "@/app/session-provider"
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getValidSubdomain } from '@/utils/multi-tenant';
+import Link from 'next/link';
 
 // Definir el esquema de validación con Yup
 const schema = yup.object().shape({
@@ -20,12 +21,14 @@ const schema = yup.object().shape({
 })
 
 export const Login = () => {
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema), 
   })
 
   const { user } = useSession();
@@ -38,51 +41,92 @@ export const Login = () => {
     }
   }, [user, router]);
 
-  useEffect(() => {
-    const { subdomain, baseDomain } = getValidSubdomain(window.location.host);
-
-    if (!subdomain) {
-      console.log('No hay subdominio');
-      router.push('/'); // Redirige a la página principal
-      return;
-    }
-  }, [router]);
-
   const hacerlogin = async (data: any) => {
-    const supabase = createClient()
-    const { email, password } = data
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      setIsLoading(true);
+      setError('');
+      const supabase = createClient()
+      const { email, password } = data
+      const { error: supabaseError, data: authData } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      })
 
-    if (!error) {
-      window.location.reload()
-    } else {
-      console.error('Error al iniciar sesión:', error.message);
+      if (supabaseError) {
+        setError('Error al iniciar sesión: ' + supabaseError.message);
+        return;
+      }
+
+      if (authData?.user) {
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      setError('Error inesperado al iniciar sesión');
+      console.error('Error:', err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
-    <Card className="bg-primary text-secondary border border-transparent w-4/5">
+    <Card className="w-full max-w-md bg-card">
       <CardHeader>
         <CardTitle>Inicio de sesión</CardTitle>
         <CardDescription>Ingresa tu correo y contraseña.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(hacerlogin)}>
-          <div className="grid w-full items-center gap-4">
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="email">Correo electronico</Label>
-              <Input id="email" className="bg-primary" type="email" placeholder="email@email.com" {...register('email')}/>
-              {errors.email && <p className="text-red-600">{errors.email.message}</p>}
+          {error && (
+            <div className="p-3 mb-4 text-sm text-destructive bg-destructive/10 rounded-md">
+              {error}
             </div>
-            <div className="flex flex-col space-y-1.5">
+          )}
+          <div className="grid w-full gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo electrónico</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@email.com"
+                {...register('email')}
+                disabled={isLoading}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
-              <Input id="password" className="bg-primary" type="password" placeholder="********" {...register('password')}/>
-              {errors.password && <p className="text-red-600">{errors.password.message}</p>}
+              <Input
+                id="password"
+                type="password"
+                placeholder="********"
+                {...register('password')}
+                disabled={isLoading}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
             </div>
           </div>
-          <CardFooter className="justify-end mt-4">
-            <Button className="text-primary" variant="outline" type="submit">Login</Button>
-          </CardFooter>
+          <div className="flex flex-col gap-4 mt-6">
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+            </Button>
+            <p className="text-sm text-center text-muted-foreground">
+              ¿No tienes una cuenta?{" "}
+              <Link 
+                href="/register" 
+                className="text-primary hover:underline"
+              >
+                Regístrate aquí
+              </Link>
+            </p>
+          </div>
         </form>
       </CardContent>
     </Card>

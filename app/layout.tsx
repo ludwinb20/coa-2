@@ -9,6 +9,9 @@ import { Inter, Figtree } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "./session-provider";
 import { ThemeProvider } from "./theme-provider";
+import { AppDataProvider } from '@/context/AppDataContext';
+import { UserFront } from "@/types/users";
+import { PropsWithChildren } from "react";
 
 const fontSans = Figtree({
   subsets: ["latin"],
@@ -24,11 +27,27 @@ interface Props {
   children: ReactNode;
 }
 
-export default async function RootLayout({ children }: Props) {
-  const user = await getUser();
+export default async function RootLayout({ children }: PropsWithChildren<{}>) {
+  const userResponse = await getUser();
 
-  if (!user) {
-    return redirect("/login");
+  if (userResponse.status === 'error' || !userResponse.data) {
+    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+      redirect("/login");
+    }
+  }
+
+  const user = userResponse.data;
+
+  const isLoginPage = typeof window !== "undefined" && window.location.pathname === "/login";
+
+  if (isLoginPage) {
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body>
+          {children}
+        </body>
+      </html>
+    );
   }
 
   return (
@@ -39,25 +58,29 @@ export default async function RootLayout({ children }: Props) {
           fontSans.variable
         )}
       >
-        <SessionProvider user={user.data}>
-          <div className="w-full h-screen min-h-full overflow-hidden">
-            <div className="grid w-full h-full grid-cols-[300px_1fr]">
-              <div className="flex w-full border-r pt-0 h-screen min-h-full">
-                <SideBarMenu user={user.data} />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          disableTransitionOnChange
+        >
+          <SessionProvider>
+            <AppDataProvider>
+              <div className="w-full h-screen min-h-full overflow-hidden">
+                <div className="grid w-full h-full grid-cols-[300px_1fr]">
+                  <div className="flex w-full border-r pt-0 h-screen min-h-full">
+                    <SideBarMenu user={user} />
+                  </div>
+                  <div className="flex w-full flex-col h-screen min-h-full">
+                    <HeaderNav session={user} />
+                    <main className="flex-1 overflow-y-auto">
+                      {children}
+                    </main>
+                  </div>
+                </div>
               </div>
-              <div className="flex w-full flex-col h-screen min-h-full">
-                <HeaderNav session={user.data} />
-                <ThemeProvider
-                  attribute="class"
-                  defaultTheme="dark"
-                  disableTransitionOnChange
-                >
-                  {children}
-                </ThemeProvider>
-              </div>
-            </div>
-          </div>
-        </SessionProvider>
+            </AppDataProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

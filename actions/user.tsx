@@ -7,6 +7,8 @@ export async function getUser(){
     const supabase = createClient();
 
     const { data: authData, error: authError } = await supabase.auth.getUser();
+    console.log('Auth Data:', authData);
+    console.log('Auth Error:', authError);
   
     if (authError || !authData?.user) {
       return  {status: 'error', data: null};
@@ -25,7 +27,7 @@ export async function getUser(){
     }
   
     const { data: empresa, error: empresaError } = await supabase
-      .from('empresas')
+      .from('companies')
       .select('*')
       .eq('id', profile.empresa_id)
       .single();

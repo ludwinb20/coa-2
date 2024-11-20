@@ -31,11 +31,11 @@ export function SideBarMenu({ user }: Props) {
             className="h-[24px] block dark:hidden"
           />
           <img
-            src="/logo-dark.png"
+            src="/logo.png"
             alt="logo"
             className="h-[24px] hidden dark:block"
           />
-          <h1 className="font-semibold text-xl">Iobot</h1>
+          <h1 className="font-semibold text-xl">Portal Devio</h1>
         </div>
       </Link>
       <ul className="flex-[1_1_auto] overflow-y-auto px-2 pt-2 pb-20">

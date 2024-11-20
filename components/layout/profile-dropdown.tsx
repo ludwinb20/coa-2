@@ -36,7 +36,7 @@ export const ProfileDropdown = ({}: Props) => {
   const firstLetter = user?.profile?.full_name?.toUpperCase() ?? "NA";
   const router = useRouter();
 
-  if (!user) return null;
+  if (!user || !user.profile) return <p>Cargando...</p>;
 
   const handleLogout = async () => {
     await signOut();
@@ -46,6 +46,8 @@ export const ProfileDropdown = ({}: Props) => {
   const onAddAccount = () => {
     setLoginOpen(true);
   };
+
+  console.log('User:', user);
 
   return (
     <>
@@ -66,7 +68,7 @@ export const ProfileDropdown = ({}: Props) => {
                 {firstLetter}
               </AvatarFallback>
             </Avatar>
-            <p className="leading-7">{user?.profile.username}</p>
+            <p className="leading-7">{user?.profile?.username || "Usuario Anónimo"}</p>
             <ChevronDownIcon className="w-5 h-5" />
           </Button>
         </DropdownMenuTrigger>
