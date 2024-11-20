@@ -30,6 +30,8 @@ interface Props {
 export default async function RootLayout({ children }: PropsWithChildren<{}>) {
   const userResponse = await getUser();
 
+  console.log(userResponse.data);
+
   if (userResponse.status === 'error' || !userResponse.data) {
     if (typeof window !== "undefined" && window.location.pathname !== "/login") {
       redirect("/login");
@@ -63,7 +65,7 @@ export default async function RootLayout({ children }: PropsWithChildren<{}>) {
           defaultTheme="dark"
           disableTransitionOnChange
         >
-          <SessionProvider>
+          <SessionProvider user={user}>
             <AppDataProvider>
               <div className="w-full h-screen min-h-full overflow-hidden">
                 <div className="grid w-full h-full grid-cols-[300px_1fr]">

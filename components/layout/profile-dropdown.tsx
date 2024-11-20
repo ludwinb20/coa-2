@@ -35,9 +35,7 @@ export const ProfileDropdown = ({}: Props) => {
 
   const firstLetter = user?.profile?.full_name?.toUpperCase() ?? "NA";
   const router = useRouter();
-
-  if (!user || !user.profile) return <p>Cargando...</p>;
-
+  
   const handleLogout = async () => {
     await signOut();
     router.push("/login");

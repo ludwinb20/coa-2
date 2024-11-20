@@ -45,10 +45,11 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getSession()
+  let sesion = await supabase.auth.getSession()
   return { 
-    response: NextResponse.next(),
-    supabase 
+    // response: NextResponse.next(),
+    // supabase 
+    sesion
   }
 }
 

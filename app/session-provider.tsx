@@ -5,28 +5,24 @@ import { createClient } from '@/utils/supabase/client';
 
 const SessionContext = createContext<{ user: any | null }>({ user: null });
 
-export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any | null>(null);
+export function SessionProvider({user, children }: {user: any, children: React.ReactNode }) {
+  const [userstate, setUserstate] = useState<any | null>(user);
   const supabase = createClient();
 
   useEffect(() => {
     // Obtener el usuario actual
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
 
     // Escuchar cambios en la autenticación
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+     if(!session) setUserstate(null);
     });
-
     return () => subscription.unsubscribe();
-  }, []);
+  }, [supabase.auth]);
 
   return (
-    <SessionContext.Provider value={{ user }}>
+    <SessionContext.Provider value={{ user: userstate }}>
       {children}
     </SessionContext.Provider>
   );
