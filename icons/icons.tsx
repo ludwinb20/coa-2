@@ -3255,9 +3255,28 @@ const AdsMetaIcon = (props: IconProps) => {
     </svg>
   );
 };
+const InventoryCartIcon = (props: IconProps) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="24"
+      viewBox="0 -960 960 960"
+      width="24"
+      {...props}
+    >
+      <path
+        d="M240-80q-33 0-56.5-23.5T160-160q0-33 23.5-56.5T240-240h480q33 0 56.5 23.5T800-160q0 33-23.5 56.5T720-80H240Zm0-40h480q9 0 15-6t6-15q0-9-6-15t-15-6H240q-9 0-15 6t-6 15q0 9 6 15t15 6Zm-40-80q-33 0-56.5-23.5T160-240q0-33 23.5-56.5T240-320h480q33 0 56.5 23.5T800-240q0 33-23.5 56.5T720-160H240Zm0-40h480q9 0 15-6t6-15q0-9-6-15t-15-6H240q-9 0-15 6t-6 15q0 9 6 15t15 6Zm-40-80q-33 0-56.5-23.5T160-320q0-33 23.5-56.5T240-400h480q33 0 56.5 23.5T800-320q0 33-23.5 56.5T720-240H240Zm0-40h480q9 0 15-6t6-15q0-9-6-15t-15-6H240q-9 0-15 6t-6 15q0 9 6 15t15 6Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
+
+
 
 export {
   LinkIcon,
+  InventoryCartIcon,
   CalendarIcon,
   ConversacionesIcon,
   HomeIcon,
