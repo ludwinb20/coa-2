@@ -1,3 +1,4 @@
+"use client";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   Form,
@@ -13,27 +14,59 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { useSession } from "@/app/session-provider";
+import { createClients } from "@/services/clients";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
 
 const ClientsCreate = () => {
+  const {user} = useSession();
+  const router = useRouter();
   const formSchema = z.object({
-    username: z.string().min(2, {
-      message: "Username must be at least 2 characters.",
-    }),
+    nombre: z
+      .string({
+        required_error: "El nombre es requerido",
+        invalid_type_error: "El nombre debe ser un texto",
+      })
+      .refine((value) => /[a-zA-Z]/.test(value), {
+        message:
+          "El nombre no puede contener solo números, debe incluir al menos una letra",
+      }),
+    rtn: z
+      .string({
+        required_error: "El RTN es requerido",
+      })
+      .regex(/^\d+$/, {
+        message: "El RTN solo puede contener números",
+      })
+      .refine((value) => value.length === 14, {
+        message: "El RTN debe tener exactamente 14 dígitos",
+      }),
   });
 
-  // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      nombre: "",
+      rtn: "",
     },
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
+    const resultado = await createClients({ company_id: user.empresa.id, name: values.nombre, rtn: values.rtn });
+    console.log('Resultado:', resultado);
+    if(resultado.success){
+      console.log('Cliente creado exitosamente');
+      toast.success("Cliente creado exitosamente");
+      router.push('/dashboard/clients');
+      return;
+    }
+
+    toast.error("No se pudo crear el cliente");
+
+
   }
   return (
     <Card>
@@ -42,23 +75,40 @@ const ClientsCreate = () => {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input placeholder="shadcn" {...field} className="w-1/2"/>
-                  </FormControl>
-                  <FormDescription>
-                    This is your public display name.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* Fila 1 */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="nombre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej. AuthCode" {...field} />
+                    </FormControl>
+                    <FormDescription>Nombre de la empresa.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="rtn"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>RTN</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej. 5555555555555" {...field} />
+                    </FormControl>
+                    <FormDescription>RTN de la empresa.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <Button type="submit">Submit</Button>
           </form>
         </Form>

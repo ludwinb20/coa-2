@@ -21,3 +21,27 @@ export const getClients = async ({ empresa_id }: { empresa_id: number | null }):
 
     return data || [];
 };
+
+export const createClients = async ({ company_id, name, rtn }: { company_id: number, name: string, rtn: string }):
+Promise<{ client: Client | null ; success: boolean }> =>  {
+    // return {client: null, success: false};
+    console.log({ company_id, name, rtn });
+    const { data, error } = await supabase
+        .from("clients")
+        .insert([
+            {
+                company_id: company_id,
+                name: name,
+                rtn: rtn,
+            },
+        ]);
+
+    console.log("Cliente creado:", data, "Error:", error);
+
+    if (error) {
+        console.log("Error creando cliente:", error);
+        return {client: null, success: false};
+    }
+
+    return {client: data, success: true};
+};

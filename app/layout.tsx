@@ -11,6 +11,7 @@ import { SessionProvider } from "./session-provider";
 import { ThemeProvider } from "./theme-provider";
 import { AppDataProvider } from '@/context/AppDataContext';
 import { PropsWithChildren } from "react";
+import { Toaster } from "sonner";
 
 const fontSans = Figtree({
   subsets: ["latin"],
@@ -67,6 +68,7 @@ export default async function RootLayout({ children }: PropsWithChildren<{}>) {
               <div className="w-full h-screen min-h-full overflow-hidden">
                 {children}
               </div>
+            <Toaster richColors/>
             </AppDataProvider>
           </SessionProvider>
         </ThemeProvider>
