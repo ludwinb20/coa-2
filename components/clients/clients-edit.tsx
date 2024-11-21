@@ -1,5 +1,16 @@
-"use client";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Client } from "@/types/clients";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
+import { EditIcon } from "@/icons/icons";
 import {
   Form,
   FormControl,
@@ -9,19 +20,20 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { useSession } from "@/app/session-provider";
-import { createClients } from "@/services/clients";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/app/session-provider";
+import { updateClient } from "@/services/clients";
+import { useState } from "react";
 
-
-const ClientsCreate = () => {
-  const {user} = useSession();
+const EditClient = ({ client }: { client: Client }) => {
+  const [open, setOpen] = useState<boolean>(false);
+  const { user } = useSession();
   const router = useRouter();
   const formSchema = z.object({
     nombre: z
@@ -48,33 +60,40 @@ const ClientsCreate = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nombre: "",
-      rtn: "",
+      nombre: client.name,
+      rtn: client.rtn,
     },
   });
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const resultado = await createClients({ company_id: user.empresa.id, name: values.nombre, rtn: values.rtn });
-    console.log('Resultado:', resultado);
-    if(resultado.success){
-      console.log('Cliente creado exitosamente');
+    console.log(values);
+    const resultado = await updateClient({
+      id: client.id,
+      name: values.nombre,
+      rtn: values.rtn,
+    });
+    console.log("Resultado:", resultado);
+    if (resultado.success) {
+      console.log("Cliente creado exitosamente");
       toast.success("Cliente creado exitosamente");
-      router.push('/dashboard/clients');
+      setOpen(false);
       return;
     }
 
     toast.error("No se pudo crear el cliente");
   }
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Crear Cliente</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <AlertDialog open={open}>
+      <AlertDialogTrigger>
+        <EditIcon onClick={() => setOpen(true)} />
+      </AlertDialogTrigger>
+      <AlertDialogContent className="max-w-2xl max-h-[40vh] h-auto overflow-y-auto">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Editar cliente</AlertDialogTitle>
+        </AlertDialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             {/* Fila 1 */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 ">
               <FormField
                 control={form.control}
                 name="nombre"
@@ -106,12 +125,21 @@ const ClientsCreate = () => {
               />
             </div>
 
-            <Button type="submit">Guardar</Button>
+
+            <AlertDialogFooter className="mt-6">
+              <Button type="submit">Guardar</Button>
+              <AlertDialogCancel
+                className="ml-2"
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </AlertDialogCancel>
+            </AlertDialogFooter>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 
-export default ClientsCreate;
+export default EditClient;

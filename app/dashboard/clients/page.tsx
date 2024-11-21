@@ -8,8 +8,8 @@ import { Client } from "@/types/clients";
 export default function Clients() {
     const [clientes, setClientes] = useState<Client[]>([]);
     const {user} = useSession();
-    console.log('User:', user);
-
+    
+// console.log('User:', user);
     useEffect(() => {
         const fetchClients = async () => {
             const cl = await getClients({ empresa_id: user.empresa.id ?? null });

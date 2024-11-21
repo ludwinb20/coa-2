@@ -5,6 +5,7 @@ import { columnsClients } from "@/components/clients/columns";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type Props = {
   clients: Client[];
@@ -12,6 +13,7 @@ type Props = {
 
 const ClientsIndex = ({ clients }: Props) => {
   const router = useRouter();
+
   return (
     <div>
       <Card>
@@ -30,7 +32,10 @@ const ClientsIndex = ({ clients }: Props) => {
           </div>
         </CardHeader>
         <CardContent>
-          <DataTableClients columns={columnsClients} data={clients} />
+          <DataTableClients
+            columns={columnsClients}
+            data={clients}
+          />
         </CardContent>
       </Card>
     </div>

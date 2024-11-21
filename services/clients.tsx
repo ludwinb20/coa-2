@@ -45,3 +45,25 @@ Promise<{ client: Client | null ; success: boolean }> =>  {
 
     return {client: data, success: true};
 };
+
+export const updateClient = async ({ id, name, rtn }: { id: number, name: string, rtn: string }):
+Promise<{ client: Client | null ; success: boolean }> =>  {
+    // return {client: null, success: false};
+    console.log({ id, name, rtn });
+    const { data, error } = await supabase
+        .from("clients")
+        .update({
+            name: name,
+            rtn: rtn,
+        })
+        .eq("id", id);
+
+    console.log("Cliente actualizado:", data, "Error:", error);
+
+    if (error) {
+        console.log("Error actualizando cliente:", error);
+        return {client: null, success: false};
+    }
+
+    return {client: data, success: true};
+};
