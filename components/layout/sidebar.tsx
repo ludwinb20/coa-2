@@ -22,7 +22,7 @@ export function SideBarMenu({ user }: Props) {
     >
       <Link
         className="flex items-center gap-x-2 flex-[0_0_auto] border-b"
-        href={"/"}
+        href={"/dashboard"}
       >
         <div className="ml-[24px] flex gap-x-1 items-center mt-5 mb-2">
           {/* <img src="/landing-logo.png" alt="" className="h-[24px]" /> */}

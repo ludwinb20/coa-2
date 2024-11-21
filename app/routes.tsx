@@ -2,6 +2,7 @@ import { Route } from "@/types/utils"
 import {
   AccountCircleIcon,
     HomeIconLaravel,
+    InventoryIcon,
   } from "@/icons/icons";
 
 export const routes: Route[] = [
@@ -17,6 +18,13 @@ export const routes: Route[] = [
       title: "Clientes",
       href: "/dashboard/clients",
       icon: AccountCircleIcon,
+      space: false,
+    },
+    {
+      id: 3,
+      title: "Gestion de Activos",
+      href: "/dashboard/asset_Management",
+      icon: InventoryIcon,
       space: false,
     }
 ]

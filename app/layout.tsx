@@ -19,7 +19,7 @@ const fontSans = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: "Dashboard - Iobot",
+  title: "Dashboard - Devio",
   description: "Dashboard",
 };
 
