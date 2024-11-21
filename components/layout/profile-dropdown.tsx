@@ -48,8 +48,6 @@ export const ProfileDropdown = ({}: Props) => {
     setLoginOpen(true);
   };
 
-  console.log('User:', user);
-
   return (
     <>
       <DropdownMenu
@@ -69,7 +67,7 @@ export const ProfileDropdown = ({}: Props) => {
                 {firstLetter}
               </AvatarFallback>
             </Avatar>
-            <p className="leading-7">{user?.profile?.username || "Usuario Anónimo"}</p>
+            <p className="leading-7">{user?.profile?.username || ""}</p>
             <ChevronDownIcon className="w-5 h-5" />
           </Button>
         </DropdownMenuTrigger>

@@ -15,7 +15,7 @@ export default async function DashboardLayout ({children}: {children: ReactNode}
     }
   
     const user = userResponse.data;
-
+    console.log('User:', user);
     
     if(!user){
         return redirect('/login');

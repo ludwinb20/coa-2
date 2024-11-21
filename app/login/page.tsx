@@ -31,6 +31,5 @@ export default async function Page({  }: Props) {
         <div className="w-full h-full bg-primary flex items-center justify-center col-span-1">
           <Login/>
         </div>
-      
     );
   }
