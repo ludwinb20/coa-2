@@ -1,6 +1,7 @@
 'use server'
 import { createClient } from "@/utils/supabase/server";
 import { UserFront } from "@/types/users";
+import { cookies } from "next/headers";
 
 
 export async function getUser(){
@@ -14,7 +15,6 @@ export async function getUser(){
       return  {status: 'error', data: null};
     }
   
-    // Obtener el perfil del usuario
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')

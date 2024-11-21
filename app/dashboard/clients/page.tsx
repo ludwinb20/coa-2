@@ -1,15 +1,29 @@
-import { getUser } from "@/actions/user";
-import DashboardLayout from "@/app/dashboard/layout";
+"use client";
+import { useSession } from "@/app/session-provider";
 import ClientsIndex from "@/components/clients/clients-index";
 import { getClients } from "@/services/clients";
+import { useEffect, useState } from "react";
+import { Client } from "@/types/clients";
 
-export default async function Clients() {
-    const user = await getUser();
-    const clientes = await getClients({empresa_id: user.data?.empresa.id ?? null});
-  return (
-    <div className="p-6">
-      <h1>Clientes</h1>
-        <ClientsIndex clients={clientes} />
-    </div>
-  );
+export default function Clients() {
+    const [clientes, setClientes] = useState<Client[]>([]);
+    const {user} = useSession();
+    console.log('User:', user);
+
+    useEffect(() => {
+        const fetchClients = async () => {
+            const cl = await getClients({ empresa_id: user.empresa.id ?? null });
+            console.log('Clientes:', cl);
+            setClientes(cl);
+        };
+    
+        fetchClients(); // Llamada a la función asíncrona
+    }, []);
+    
+    return (
+        <div className="p-6">
+          <ClientsIndex clients={clientes} />
+        </div>
+      );
+      
 }
