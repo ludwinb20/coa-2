@@ -3,12 +3,13 @@ import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
-import { EditIcon } from "@/icons/icons";
+import { EditIcon, MediaUploadIcon } from "@/icons/icons";
 import {
   Form,
   FormControl,
@@ -24,36 +25,49 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { useSession } from "@/app/session-provider";
 import { updateClient } from "@/services/clients";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import Dropzone from "../ui/dropzone";
+import { deleteFile } from "@/utils/handle-files";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 const EditClient = ({ client }: { client: Client }) => {
   const [open, setOpen] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(client?.url ?? null);
+  const [originalImageDeleted, setOriginalImageDeleted] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
   const { user } = useSession();
   const queryClient = useQueryClient();
+
+  const deleteImg = async () => {
+    setSelectedFile(null);
+    if (client.file && !originalImageDeleted) {
+      const resultado = await deleteFile({
+        bucket: "avatars",
+        url: `clients/${client.file}`,
+      });
+      if (resultado.success) {
+        setOriginalImageDeleted(true);
+        setFileUrl(null);
+      }
+    }
+  };
+
   const formSchema = z.object({
     nombre: z
-      .string({
-        required_error: "El nombre es requerido",
-        invalid_type_error: "El nombre debe ser un texto",
-      })
+      .string()
+      .min(1, "El nombre es requerido")
       .refine((value) => /[a-zA-Z]/.test(value), {
         message:
           "El nombre no puede contener solo números, debe incluir al menos una letra",
       }),
     rtn: z
-      .string({
-        required_error: "El RTN es requerido",
-      })
-      .regex(/^\d+$/, {
-        message: "El RTN solo puede contener números",
-      })
-      .refine((value) => value.length === 14, {
-        message: "El RTN debe tener exactamente 14 dígitos",
-      }),
+      .string()
+      .regex(/^\d+$/, { message: "El RTN solo puede contener números" })
+      .length(14, "El RTN debe tener exactamente 14 dígitos"),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -63,37 +77,42 @@ const EditClient = ({ client }: { client: Client }) => {
       rtn: client.rtn,
     },
   });
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    setSaving(true);
     const resultado = await updateClient({
       id: client.id,
       name: values.nombre,
       rtn: values.rtn,
+      file: selectedFile ?? (originalImageDeleted ? null : client.file),
     });
-    console.log("Resultado:", resultado);
+    setSaving(false);
+
     if (resultado.success) {
-      console.log("Cliente creado exitosamente");
-      toast.success("Cliente creado exitosamente");
+      toast.success("Cliente actualizado exitosamente");
       queryClient.invalidateQueries({ queryKey: ["clientes", user.id] });
       setOpen(false);
-      return;
+    } else {
+      toast.error("No se pudo actualizar el cliente");
     }
-
-    toast.error("No se pudo crear el cliente");
   }
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger>
         <EditIcon onClick={() => setOpen(true)} />
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-2xl max-h-[40vh] h-auto overflow-y-auto">
+      <AlertDialogContent className="max-w-2xl h-auto overflow-y-auto">
         <AlertDialogHeader>
           <AlertDialogTitle>Editar cliente</AlertDialogTitle>
         </AlertDialogHeader>
-        <Form {...form}>
+        <AlertDialogDescription>
+            Actualize la informacion del cliente.
+        </AlertDialogDescription>
+            <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             {/* Fila 1 */}
-            <div className="grid grid-cols-2 gap-4 ">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="nombre"
@@ -124,9 +143,28 @@ const EditClient = ({ client }: { client: Client }) => {
                 )}
               />
             </div>
+            {/* Zona de archivos */}
+            <div className="grid grid-cols-2 mt-8 gap-y-8">
+              <Dropzone
+                onDrop={(files) => {
+                  setSelectedFile(files[0]);
+                  setFileUrl(null);
+                }}
+                onDelete={deleteImg}
+                url={fileUrl ?? ""}
+                file={selectedFile}
+                className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs hover:cursor-pointer"
+                text="Arrastre un archivo aquí o haga click para seleccionar un archivo"
+              />
+              {selectedFile && (
+                <p className="text-sm text-gray-500">
+                  Archivo seleccionado: {selectedFile.name}
+                </p>
+              )}
+            </div>
 
             <AlertDialogFooter className="mt-6">
-              <Button type="submit">Guardar</Button>
+              <Button type="submit">{saving ?  <ReloadIcon className="animate-spin" /> : "Guardar"}</Button>
               <AlertDialogCancel
                 className="ml-2"
                 onClick={() => setOpen(false)}

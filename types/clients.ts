@@ -3,4 +3,6 @@ export type Client = {
     name: string;
     rtn: string;
     created_at: string;
+    file: string | null;
+    url?: string | null;
   };

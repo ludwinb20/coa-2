@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function Clients() {
   const { user } = useSession();
+  
   const { data: clientes, isLoading } = useQuery({
     queryKey: ["clientes", user.id],
     queryFn: () => getClients({ empresa_id: user.empresa.id ?? null }),

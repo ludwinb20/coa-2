@@ -18,7 +18,7 @@ const ClientsIndex = ({ clients }: Props) => {
       <Card>
         <CardHeader>
           <CardTitle>Clientes</CardTitle>
-          <div className="flex justify-end items-center mb-4">
+          <div className="flex justify-end items-center mb-2">
             <Button
               onClick={() => {
                 router.push("/dashboard/clients/create");
