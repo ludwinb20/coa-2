@@ -1,0 +1,62 @@
+import { Client } from "@/types/clients";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useSession } from "@/app/session-provider";
+import { deleteCliente } from "@/services/clients";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { XIcon } from "lucide-react";
+
+const DeleteClient = ({ client }: { client: Client }) => {
+  const [open, setOpen] = useState<boolean>(false);
+  const { user } = useSession();
+  const queryClient = useQueryClient();
+  const handleDelete = async () => {
+    const resultado = await deleteCliente({
+      id: client.id,
+    });
+    if (resultado.success) {
+      toast.success("Cliente eliminado exitosamente");
+      queryClient.invalidateQueries({ queryKey: ["clientes", user.id] });
+      setOpen(false);
+      return;
+    }
+
+    toast.error("No se pudo crear el cliente");
+  };
+  return (
+    <AlertDialog open={open}>
+      <AlertDialogTrigger>
+        <XIcon color="red" onClick={() => setOpen(true)} />
+      </AlertDialogTrigger>
+      <AlertDialogContent className="max-w-2xl max-h-[40vh] h-auto overflow-y-auto">
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta acción no se puede deshacer.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="mt-6">
+          <Button variant={"destructive"} onClick={handleDelete}>
+            Eliminar
+          </Button>
+          <AlertDialogCancel className="ml-2" onClick={() => setOpen(false)}>
+            Cancelar
+          </AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+export default DeleteClient;

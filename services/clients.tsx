@@ -15,6 +15,7 @@ export const getClients = async ({
     .from("clients")
     .select("*")
     .eq("company_id", empresa_id)
+    .eq("active", true)
     .order("id", {
       ascending: true,
     });
@@ -81,6 +82,30 @@ export const updateClient = async ({
 
   if (error) {
     console.log("Error actualizando cliente:", error);
+    return { client: null, success: false };
+  }
+
+  return { client: data, success: true };
+};
+
+export const deleteCliente = async ({
+  id,
+}: {
+  id: number;
+}): Promise<{ client: Client | null; success: boolean }> => {
+  // return {client: null, success: false};
+  console.log({ id });
+  const { data, error } = await supabase
+    .from("clients")
+    .update({
+        active: false
+    })
+    .eq("id", id);
+
+  console.log("Cliente eliminado:", data, "Error:", error);
+
+  if (error) {
+    console.log("Error eliminando cliente:", error);
     return { client: null, success: false };
   }
 

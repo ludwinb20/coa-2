@@ -7,14 +7,16 @@ import { DeleteIcon, XIcon } from "lucide-react";
 import { Client } from "@/types/clients";
 import EditClient from "./clients-edit";
 import { useState } from "react";
+import DeleteClient from "./clients-delete";
 
 const HandleEdit = ({row}:{row: Client}) => {
     const [client, setClient] = useState<Client>(row);
     return <EditClient client={client} />;
 };
 
-const handleDelete = (client: Client) => {
-  console.log('Eliminando cliente:', client);
+const HandleDelete = ({row}:{row: Client}) => {
+    const [client, setClient] = useState<Client>(row);
+    return <DeleteClient client={client} />;
 };
 
 export const columnsClients: ColumnDef<Client>[] = [
@@ -42,7 +44,7 @@ export const columnsClients: ColumnDef<Client>[] = [
     cell: ({ row }) => {
         return <div className="flex justify-center items-center gap-x-2">
             <HandleEdit row={row.original}/>
-            <Button variant="destructive" size="sm" onClick={() => handleDelete(row.original)}><XIcon /></Button>
+            <HandleDelete row={row.original}/>
         </div>
       },
   }

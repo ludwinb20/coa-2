@@ -1,10 +1,8 @@
 import { Client } from "@/types/clients";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -35,7 +33,6 @@ import { useQueryClient } from "@tanstack/react-query";
 const EditClient = ({ client }: { client: Client }) => {
   const [open, setOpen] = useState<boolean>(false);
   const { user } = useSession();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const formSchema = z.object({
     nombre: z
@@ -77,7 +74,7 @@ const EditClient = ({ client }: { client: Client }) => {
     if (resultado.success) {
       console.log("Cliente creado exitosamente");
       toast.success("Cliente creado exitosamente");
-      queryClient.invalidateQueries({ queryKey: ["clientes"] });
+      queryClient.invalidateQueries({ queryKey: ["clientes", user.id] });
       setOpen(false);
       return;
     }
@@ -85,7 +82,7 @@ const EditClient = ({ client }: { client: Client }) => {
     toast.error("No se pudo crear el cliente");
   }
   return (
-    <AlertDialog open={open}>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger>
         <EditIcon onClick={() => setOpen(true)} />
       </AlertDialogTrigger>

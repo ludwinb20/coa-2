@@ -7,11 +7,11 @@ import { getClients } from "@/services/clients";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Clients() {
+  const { user } = useSession();
   const { data: clientes, isLoading } = useQuery({
-    queryKey: ["clientes"],
+    queryKey: ["clientes", user.id],
     queryFn: () => getClients({ empresa_id: user.empresa.id ?? null }),
   });
-  const { user } = useSession();
 
   return (
     <div className="p-6">
