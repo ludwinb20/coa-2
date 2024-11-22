@@ -1,4 +1,5 @@
-import { Category } from "@/types/asset";
+
+import { Category } from "@/types/category";
 import { createClient } from "@/utils/supabase/client";
 
 const supabase = createClient();
@@ -25,27 +26,23 @@ export const getCategories = async ({
   return data;
 };
 
-export const createAsset = async ({
+export const createCategory = async ({
     company_id,
     nombre,
-    
-   
   }: {
     company_id: number;
     nombre: string;
     
   }): Promise<{ categoria: Category | null; success: boolean }> => {
-    // return {client: null, success: false};
     console.log({ company_id, nombre});
     const { data, error } = await supabase.from("category").insert([
       {
         company_id: company_id,
         nombre: nombre,
-        
       },
     ]);
   
-    console.log("Categoria creado:", data, "Error:", error);
+    console.log("Categoria creada:", data, "Error:", error);
   
     if (error) {
       console.log("Error creando categoria:", error);
@@ -54,3 +51,31 @@ export const createAsset = async ({
   
     return { categoria: data, success: true };
   };
+
+export const updateCategory = async ({
+  id,
+  company_id,
+  nombre,
+}: {
+  id: number;
+  company_id: number;
+  nombre: string;
+}): Promise<{ categoria: Category | null; success: boolean }> => {
+  console.log({ id, company_id, nombre });
+  const { data, error } = await supabase
+    .from("category")
+    .update({
+      company_id: company_id,
+      nombre: nombre,
+    })
+    .eq("id", id);
+
+  console.log("Categoria actualizada:", data, "Error:", error);
+
+  if (error) {
+    console.log("Error actualizando categoria:", error);
+    return { categoria: null, success: false };
+  }
+
+  return { categoria: data, success: true };
+};

@@ -5,15 +5,18 @@ import { getAsset } from "@/services/asset";
 import { Asset } from "@/types/asset";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import AssetIndex from "@/components/asset/asset-index";
+import CategoryIndex from "@/components/category/category-index";
+import { getCategories } from "@/services/category";
 
-export default function Assets() {
+
+
+export default function Categorys() {
   //const [assets, setAssets] = useState<Asset[]>([]);
   //console.log("Assets:", assets);
   const { user } = useSession();
-  const { data: assets, isLoading } = useQuery({
-    queryKey: ["assets", user.id],
-    queryFn: () => getAsset({ empresa_id: user.empresa.id ?? null }),
+  const { data: category, isLoading } = useQuery({
+    queryKey: ["category", user.id],
+    queryFn: () => getCategories({ empresa_id: user.empresa.id ?? null }),
   });
 
 
@@ -25,7 +28,7 @@ export default function Assets() {
       {isLoading ? (
         <div>Cargando activos...</div>
       ) : (
-      <AssetIndex asset={assets ?? []} />
+      <CategoryIndex categorys={category ?? []} />
     )}
     </div>
   );
