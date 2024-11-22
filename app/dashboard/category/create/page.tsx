@@ -1,15 +1,12 @@
 "use client";
 
-import AssetCreate from "@/components/asset/asset-create";
 
-
-
-
+import CategoryCreate from "@/components/category/category-create";
 
 export default function Clients() {
     return (
         <div className="p-6">
-          <AssetCreate/>
+          <CategoryCreate/>
         </div>
       );
 }

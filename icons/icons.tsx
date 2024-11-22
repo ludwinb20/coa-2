@@ -217,9 +217,9 @@ const EcommerceIcon = (props: IconProps) => {
 const TrashIcon = (props: IconProps) => {
   return (
     <svg
-      width="20"
-      height="21"
-      viewBox="0 0 20 21"
+      width="10"
+      height="10"
+      viewBox="0 0 15 19"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
@@ -3414,5 +3414,5 @@ export {
   ChartLineUpIcon,
   WhatsAppBusinessIcon,
   CalendarTimeIcon,
-  AdsMetaIcon,
+  AdsMetaIcon
 };

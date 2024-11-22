@@ -23,8 +23,24 @@ export const routes: Route[] = [
     {
       id: 3,
       title: "Gestion de Activos",
-      href: "/dashboard/asset_Management",
+      //href: "/dashboard/asset_Management",
       icon: InventoryIcon,
       space: false,
+      children: [
+        {
+          id: 4,
+          title: "Activos",
+          href: "/dashboard/asset_Management",
+          icon: InventoryIcon,
+          space: false,
+        },
+        {
+          id: 5,
+          title: "Categorias",
+          href: "/dashboard/category",
+          icon: InventoryIcon,
+          space: false,
+        },
+      ],
     }
 ]

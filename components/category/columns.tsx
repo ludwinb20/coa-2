@@ -10,21 +10,14 @@ import { Client } from "@/types/clients";
 import { useState } from "react";
 import EditClient from "../clients/clients-edit";
 import DeleteClient from "../clients/clients-delete";
-import EditAsset from "./asset-edit";
-import DeleteAsset from "./asset-delete";
+import EditAsset from "../asset/asset-edit";
+import DeleteAsset from "../asset/asset-delete";
+import { Category } from "@/types/category";
 
 
-const HandleEdit = ({row}:{row: Asset}) => {
-  const [asset, setAsset] = useState<Asset>(row);
-  return <EditAsset asset={asset} />;
-};
 
-const HandleDelete = ({row}:{row: Asset}) => {
-  const [asset, setAsset] = useState<Asset>(row);
-  return <DeleteAsset asset={asset} />;
-};
 
-export const columnsAsset: ColumnDef<Asset>[] = [
+export const columnsCategory: ColumnDef<Category>[] = [
   {
     accessorKey: "nombre",
     header: "Nombre",
@@ -33,17 +26,10 @@ export const columnsAsset: ColumnDef<Asset>[] = [
       },
   },
   {
-    accessorKey: "precio",
-    header: "Precio",
+    accessorKey: "descripcion",
+    header: "Descripcion",
     cell: ({ row }) => {
-        return <p>{row.original.precio ?? ""}</p>;
-      },
-  },
-  {
-    accessorKey: "categoria_id",
-    header: "Categoria",
-    cell: ({ row }) => {
-        return <p>{row.original.categoria_id ?? ""}</p>;
+        return <p>{row.original.descripcion ?? ""}</p>;
       },
   },
   {
@@ -55,8 +41,7 @@ export const columnsAsset: ColumnDef<Asset>[] = [
       ),
     cell: ({ row }) => {
         return <div className="flex justify-center items-center gap-x-2">
-           <HandleEdit row={row.original}/>
-           <HandleDelete row={row.original}/>
+       
         </div>
       },
   }
