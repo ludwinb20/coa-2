@@ -19,9 +19,8 @@ import { createClients } from "@/services/clients";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-
 const ClientsCreate = () => {
-  const {user} = useSession();
+  const { user } = useSession();
   const router = useRouter();
   const formSchema = z.object({
     nombre: z
@@ -54,17 +53,22 @@ const ClientsCreate = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const resultado = await createClients({ company_id: user.empresa.id, name: values.nombre, rtn: values.rtn });
-    console.log('Resultado:', resultado);
-    if(resultado.success){
-      console.log('Cliente creado exitosamente');
+    const resultado = await createClients({
+      company_id: user.empresa.id,
+      name: values.nombre,
+      rtn: values.rtn,
+    });
+    console.log("Resultado:", resultado);
+    if (resultado.success) {
+      console.log("Cliente creado exitosamente");
       toast.success("Cliente creado exitosamente");
-      router.push('/dashboard/clients');
+      router.push("/dashboard/clients");
       return;
     }
 
     toast.error("No se pudo crear el cliente");
   }
+
   return (
     <Card>
       <CardHeader>

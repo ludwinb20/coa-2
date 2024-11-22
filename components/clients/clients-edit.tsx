@@ -30,11 +30,13 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/app/session-provider";
 import { updateClient } from "@/services/clients";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 const EditClient = ({ client }: { client: Client }) => {
   const [open, setOpen] = useState<boolean>(false);
   const { user } = useSession();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const formSchema = z.object({
     nombre: z
       .string({
@@ -75,6 +77,7 @@ const EditClient = ({ client }: { client: Client }) => {
     if (resultado.success) {
       console.log("Cliente creado exitosamente");
       toast.success("Cliente creado exitosamente");
+      queryClient.invalidateQueries({ queryKey: ["clientes"] });
       setOpen(false);
       return;
     }
@@ -124,7 +127,6 @@ const EditClient = ({ client }: { client: Client }) => {
                 )}
               />
             </div>
-
 
             <AlertDialogFooter className="mt-6">
               <Button type="submit">Guardar</Button>

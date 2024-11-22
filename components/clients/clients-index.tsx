@@ -5,7 +5,6 @@ import { columnsClients } from "@/components/clients/columns";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 type Props = {
   clients: Client[];
