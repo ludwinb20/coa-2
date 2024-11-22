@@ -1,5 +1,14 @@
-"use client";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Asset } from "@/types/asset";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
+import { EditIcon } from "@/icons/icons";
 import {
   Form,
   FormControl,
@@ -9,21 +18,21 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { useSession } from "@/app/session-provider";
-import { createClients } from "@/services/clients";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createAsset } from "@/services/asset";
-import { Select } from "../ui/select";
+import { useSession } from "@/app/session-provider";
+import { updateAsset } from "@/services/asset";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
-const ClientsCreate = () => {
+const EditAsset = ({ asset }: { asset: Asset }) => {
+  const [open, setOpen] = useState<boolean>(false);
   const { user } = useSession();
-  const router = useRouter();
+  const queryClient = useQueryClient();
   
   const formSchema = z.object({
     nombre: z
@@ -60,17 +69,17 @@ const ClientsCreate = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nombre: "",
-      precio: 0,
-      estado: "",
-      disponibilidad: "disponible", // Valor por defecto
-      categoria: 0,
+      nombre: asset.nombre,
+      precio: asset.precio,
+      estado: asset.estado,
+      disponibilidad: asset.disponibilidad ? "disponible" : "ocupado",
+      categoria: asset.categoria_id,
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    const resultado = await createAsset({
+    const resultado = await updateAsset({
+      id: asset.id,
       company_id: user.empresa.id,
       name: values.nombre,
       precio: values.precio,
@@ -78,27 +87,29 @@ const ClientsCreate = () => {
       disponibilidad: values.disponibilidad === "disponible",
       categoria: values.categoria,
     });
-    console.log('Resultado:', resultado);
+
     if (resultado.success) {
-      console.log('Cliente creado exitosamente');
-      toast.success("Cliente creado exitosamente");
-      router.push('/dashboard/asset_Management');
+      toast.success("Activo actualizado exitosamente");
+      queryClient.invalidateQueries({ queryKey: ["assets", user.id] });
+      setOpen(false);
       return;
     }
 
-    toast.error("No se pudo crear el cliente");
+    toast.error("No se pudo actualizar el activo");
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Crear Activo</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger>
+        <EditIcon onClick={() => setOpen(true)} />
+      </AlertDialogTrigger>
+      <AlertDialogContent className="max-w-2xl max-h-[40vh] h-auto overflow-y-auto">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Editar Activo</AlertDialogTitle>
+        </AlertDialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {/* Fila 1 */}
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-2 gap-4 ">
               <FormField
                 control={form.control}
                 name="nombre"
@@ -106,9 +117,9 @@ const ClientsCreate = () => {
                   <FormItem>
                     <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ej. Nombre del producto" {...field} />
+                      <Input placeholder="Ej. Nombre del activo" {...field} />
                     </FormControl>
-                    <FormDescription>Nombre del producto.</FormDescription>
+                    <FormDescription>Nombre del activo.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -121,15 +132,15 @@ const ClientsCreate = () => {
                   <FormItem>
                     <FormLabel>Precio</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="Ej. 100" 
-                        {...field} 
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) )}
+                      <Input
+                        type="number"
+                        placeholder="Ej. 100"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
                         onWheel={(e) => e.currentTarget.blur()}
                       />
                     </FormControl>
-                    <FormDescription>Precio del producto.</FormDescription>
+                    <FormDescription>Precio del activo.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -144,7 +155,7 @@ const ClientsCreate = () => {
                     <FormControl>
                       <Input placeholder="Ej. Golpeado" {...field} />
                     </FormControl>
-                    <FormDescription>Estado del producto.</FormDescription>
+                    <FormDescription>Estado del activo.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -162,7 +173,7 @@ const ClientsCreate = () => {
                         <option value="ocupado">Ocupado</option>
                       </select>
                     </FormControl>
-                    <FormDescription>¿Está disponible el producto?</FormDescription>
+                    <FormDescription>¿Está disponible el activo?</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -175,26 +186,34 @@ const ClientsCreate = () => {
                   <FormItem>
                     <FormLabel>Categoría</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="Ej. 1" 
-                        {...field} 
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) )}
+                      <Input
+                        type="number"
+                        placeholder="Ej. 1"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
                       />
                     </FormControl>
-                    <FormDescription>Categoría del producto (número).</FormDescription>
+                    <FormDescription>Categoría del activo (número).</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
 
-            <Button type="submit">Crear</Button>
+            <AlertDialogFooter className="mt-6">
+              <Button type="submit">Guardar</Button>
+              <AlertDialogCancel
+                className="ml-2"
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </AlertDialogCancel>
+            </AlertDialogFooter>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 
-export default ClientsCreate;
+export default EditAsset;

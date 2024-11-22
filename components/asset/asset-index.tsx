@@ -20,7 +20,7 @@ const AssetIndex = ({ asset }: Props) => {
         <div className="flex justify-end items-center mb-4">
           <Button
             onClick={() => {
-              router.push("/dashboard/assets/create");
+              router.push("/dashboard/asset_Management/create");
             }}
             variant="default"
             size="sm"

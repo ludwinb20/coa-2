@@ -1,14 +1,30 @@
 "use client";
 
+import { Asset } from "@/types/asset";
 import { ColumnDef } from "@tanstack/react-table";
 
-type RowsEtapasChats = {
-    nombre: string;
-    precio: number;
-    categoria: string;
+import { Button } from "../ui/button";
+import { EditIcon } from "@/icons/icons";
+import { DeleteIcon, XIcon } from "lucide-react";
+import { Client } from "@/types/clients";
+import { useState } from "react";
+import EditClient from "../clients/clients-edit";
+import DeleteClient from "../clients/clients-delete";
+import EditAsset from "./asset-edit";
+import DeleteAsset from "./asset-delete";
+
+
+const HandleEdit = ({row}:{row: Asset}) => {
+  const [asset, setAsset] = useState<Asset>(row);
+  return <EditAsset asset={asset} />;
 };
 
-export const columnsAsset: ColumnDef<RowsEtapasChats>[] = [
+const HandleDelete = ({row}:{row: Asset}) => {
+  const [asset, setAsset] = useState<Asset>(row);
+  return <DeleteAsset asset={asset} />;
+};
+
+export const columnsAsset: ColumnDef<Asset>[] = [
   {
     accessorKey: "nombre",
     header: "Nombre",
@@ -24,10 +40,24 @@ export const columnsAsset: ColumnDef<RowsEtapasChats>[] = [
       },
   },
   {
-    accessorKey: "categoria",
+    accessorKey: "categoria_id",
     header: "Categoria",
     cell: ({ row }) => {
-        return <p>{row.original.categoria ?? ""}</p>;
+        return <p>{row.original.categoria_id ?? ""}</p>;
       },
   },
+  {
+    accessorKey: "actions",
+    header: () =>(
+        <div className="flex justify-center items-center">
+          Acciones
+        </div>
+      ),
+    cell: ({ row }) => {
+        return <div className="flex justify-center items-center gap-x-2">
+           <HandleEdit row={row.original}/>
+           <HandleDelete row={row.original}/>
+        </div>
+      },
+  }
 ];
