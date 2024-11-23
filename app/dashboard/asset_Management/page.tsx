@@ -15,11 +15,6 @@ export default function Assets() {
     queryKey: ["assets", user.id],
     queryFn: () => getAsset({ empresa_id: user.empresa.id ?? null }),
   });
-
-
-  
-
-  
   return (
     <div className="p-6">
       {isLoading ? (
