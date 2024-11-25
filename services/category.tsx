@@ -29,16 +29,19 @@ export const getCategories = async ({
 export const createCategory = async ({
     company_id,
     nombre,
+    descripcion
   }: {
     company_id: number;
     nombre: string;
+    descripcion: string;
     
   }): Promise<{ categoria: Category | null; success: boolean }> => {
-    console.log({ company_id, nombre});
+    console.log({ company_id, nombre,});
     const { data, error } = await supabase.from("category").insert([
       {
         company_id: company_id,
         nombre: nombre,
+        descripcion:descripcion
       },
     ]);
   
@@ -78,4 +81,27 @@ export const updateCategory = async ({
   }
 
   return { categoria: data, success: true };
+};
+
+export const deleteCategory = async ({
+  id,
+}: {
+  id: number;
+}): Promise<{ category: Category | null; success: boolean }> => {
+  console.log({ id });
+  const { data, error } = await supabase
+    .from("category")
+    .update({
+        active: false
+    })
+    .eq("id", id);
+
+  console.log("Categoria eliminada:", data, "Error:", error);
+
+  if (error) {
+    console.log("Error eliminando categoria:", error);
+    return { category: null, success: false };
+  }
+
+  return { category: data, success: true };
 };

@@ -1,4 +1,4 @@
-import { Asset } from "@/types/asset";
+import { Category } from "@/types/category";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -12,24 +12,25 @@ import {
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { useSession } from "@/app/session-provider";
-import { deleteAsset } from "@/services/asset"; // Asegúrate de que esta función esté definida
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { TrashIcon } from "lucide-react";
+import { deleteCategory } from "@/services/category";
 
 
-const DeleteAsset = ({ asset }: { asset: Asset }) => {
+
+const DeleteCategory = ({ category }: { category: Category }) => {
   const [open, setOpen] = useState<boolean>(false);
   const { user } = useSession();
   const queryClient = useQueryClient();
 
   const handleDelete = async () => {
-    const resultado = await deleteAsset({
-      id: asset.id,
+    const resultado = await deleteCategory({
+      id: category.id,
     });
     if (resultado.success) {
       toast.success("Activo eliminado exitosamente");
-      queryClient.invalidateQueries({ queryKey: ["assets", user.empresa.id] });
+      queryClient.invalidateQueries({ queryKey: ["category", user.empresa.id] });
       setOpen(false);
       return;
     }
@@ -62,4 +63,4 @@ const DeleteAsset = ({ asset }: { asset: Asset }) => {
   );
 };
 
-export default DeleteAsset;
+export default DeleteCategory;
