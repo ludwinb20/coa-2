@@ -31,21 +31,21 @@ export function DataTableClients<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-        []
-      );
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
 
-const table = useReactTable({
-  data,
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-  onColumnFiltersChange: setColumnFilters,
-  getFilteredRowModel: getFilteredRowModel(),
-  state: {
-    columnFilters,
-  },
-});
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      columnFilters,
+    },
+  });
 
   return (
     <div className="">

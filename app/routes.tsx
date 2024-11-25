@@ -4,6 +4,7 @@ import {
     HomeIconLaravel,
     InventoryIcon,
   } from "@/icons/icons";
+import rolesPermsisssions from "@/utils/roles";
 
 export const routes: Route[] = [
     {
@@ -12,6 +13,7 @@ export const routes: Route[] = [
       href: "/dashboard",
       icon: HomeIconLaravel,
       space: false,
+      roles: [1, 2, 3, 4, 5],
     },
     {
       id: 2,
@@ -19,6 +21,7 @@ export const routes: Route[] = [
       href: "/dashboard/clients",
       icon: AccountCircleIcon,
       space: false,
+      roles: rolesPermsisssions.access_clients_index,
     },
     {
       id: 3,
@@ -26,6 +29,7 @@ export const routes: Route[] = [
       //href: "/dashboard/asset_Management",
       icon: InventoryIcon,
       space: false,
+      roles: [1, 2, 3, 4],
       children: [
         {
           id: 4,
@@ -33,6 +37,7 @@ export const routes: Route[] = [
           href: "/dashboard/asset_Management",
           icon: InventoryIcon,
           space: false,
+          roles: [1, 2, 3, 4],
         },
         {
           id: 5,
@@ -40,6 +45,7 @@ export const routes: Route[] = [
           href: "/dashboard/category",
           icon: InventoryIcon,
           space: false,
+          roles: [1, 2, 3, 4],
         },
       ],
     }

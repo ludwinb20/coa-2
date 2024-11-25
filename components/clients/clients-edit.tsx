@@ -32,6 +32,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Dropzone from "../ui/dropzone";
 import { deleteFile } from "@/utils/handle-files";
 import { ReloadIcon } from "@radix-ui/react-icons";
+import rolesPermissions from "@/utils/roles";
 
 const EditClient = ({ client }: { client: Client }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -97,10 +98,16 @@ const EditClient = ({ client }: { client: Client }) => {
     }
   }
 
+  if(!rolesPermissions.clients_edit.includes(user.profile.rol_id)){
+    return null;
+  }
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger>
-        <EditIcon onClick={() => setOpen(true)} />
+        <Button variant="outline" className="border border-primary" onClick={() => setOpen(true)}>
+          <EditIcon />
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-2xl h-auto overflow-y-auto">
         <AlertDialogHeader>

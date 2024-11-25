@@ -15,7 +15,8 @@ import { useSession } from "@/app/session-provider";
 import { deleteCliente } from "@/services/clients";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { XIcon } from "lucide-react";
+import { Bin } from "@/icons/icons";
+import rolesPermissions from "@/utils/roles";
 
 const DeleteClient = ({ client }: { client: Client }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -34,10 +35,16 @@ const DeleteClient = ({ client }: { client: Client }) => {
 
     toast.error("No se pudo crear el cliente");
   };
+
+  if(!rolesPermissions.clients_delete.includes(user.profile.rol_id)){
+    return null;
+  }
   return (
     <AlertDialog open={open}>
       <AlertDialogTrigger>
-        <XIcon color="red" onClick={() => setOpen(true)} />
+        <Button variant="outline" className="border border-destructive" onClick={() => setOpen(true)}>  
+          <Bin color="red" />
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-2xl max-h-[40vh] h-auto overflow-y-auto">
         <AlertDialogHeader>

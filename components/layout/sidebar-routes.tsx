@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ComponentType, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "@/app/session-provider";
 
 interface NestedLinkProps {
   href: string;
@@ -50,6 +51,8 @@ function NestedLink({
   //     </a>
   //   );
   // }
+
+
 
   return (
     <MotionLink
@@ -96,6 +99,7 @@ interface PlainLinkProps {
   icon: ComponentType<IconProps>;
   space?: boolean;
   duplicated?: boolean;
+  roles: number[];
 }
 
 const slashMotion = {
@@ -112,11 +116,24 @@ function PlainLink({
   icon,
   space,
   duplicated = false,
+  roles
 }: PlainLinkProps) {
   const [isHovered, setIsHovered] = useState(false);
   const pathname = usePathname();
   const isActive = pathname === href;
   const Icon = icon;
+
+  const {user} = useSession();
+  
+  if(!user){
+    return null;
+  }
+
+  const isAllowed = roles.includes(user.profile.rol_id);
+
+  if(!isAllowed){
+    return null;
+  }
 
   return (
     <MotionLink
@@ -162,6 +179,17 @@ export function LinkWithChildren({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  const {user} = useSession();
+  if(!user){
+    return null;
+  }
+
+  const isAllowed = route.roles.includes(user.profile.rol_id);
+
+  if(!isAllowed){
+    return null;
+  }
 
 
   return (
@@ -252,6 +280,7 @@ export function LinkWithoutChildren({
       name={route.title}
       space={route.space}
       duplicated={route.duplicated}
+      roles={route.roles}
     />
   );
 }

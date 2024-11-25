@@ -10,4 +10,5 @@ export interface Route {
     children?: Route[];
     duplicated?: boolean;
     space?: boolean;
+    roles: number[];
   }
