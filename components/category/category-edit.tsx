@@ -55,7 +55,7 @@ const EditCategory = ({ category }: { category: Category }) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       nombre: category.nombre,
-      company_id: category.company_id,
+      company_id: user.empresa.id,
       descripcion: category.descripcion,
     },
   });
@@ -103,25 +103,7 @@ const EditCategory = ({ category }: { category: Category }) => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="company_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ID de la Compañía</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Ej. 1"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormDescription>ID de la compañía asociada.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+             
 
               <FormField
                 control={form.control}
