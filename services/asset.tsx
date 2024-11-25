@@ -1,5 +1,7 @@
 import { Asset } from "@/types/asset";
+import { uploadFile } from "@/utils/handle-files";
 import { createClient } from "@/utils/supabase/client";
+import { v4 as uuidv4 } from "uuid";
 
 const supabase = createClient();
 
@@ -7,23 +9,59 @@ export const getAsset = async ({
   empresa_id,
 }: {
   empresa_id: number | null;
-}): Promise<Asset[]>  => {
-  console.log("Empresa ID:", empresa_id);
+}): Promise<Asset[]> => {
+
   if (!empresa_id) return [];
-  const { data, error } = await supabase
-    .from("asset")
-    .select("*")
-    .eq("company_id", empresa_id)
-    .eq("active", true)
-    .order("id", {
-      ascending: true,
-    });;
-  console.log("Assets:", data, "Error:", error);
-  if (error) {
+
+  try {
+    const { data: assets, error } = await supabase
+      .from("asset")
+      .select(`
+        *,
+        category:categoria_id (
+          id,
+          nombre
+        )
+      `)
+      .eq("company_id", empresa_id)
+      .eq("active", true)
+      .order("id", {
+        ascending: true,
+      });
+
+      if (!assets || assets.length === 0) {
+        console.info("No se encontraron clientes.");
+        return [];
+      }
+  
+
+      const assetsWithFiles = await Promise.all(
+        assets.map(async (asset: Asset) => {
+          if (!asset.file) {
+            return { ...asset, url: null };
+          }
+  
+          const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+            .from("assets")
+            .createSignedUrl(`assets/${asset.file}`, 3600);
+  
+          if (signedUrlError || !signedUrlData) {
+            console.error(`Error creando URL firmada para el archivo ${asset.file}:`, signedUrlError?.message);
+            return { ...asset, url: null };
+          }
+  
+          return { ...asset, url: signedUrlData.signedUrl };
+        })
+      );
+
+
+
+    if (error) throw error;
+    return assetsWithFiles || [];
+  } catch (error) {
     console.error("Error fetching Assets:", error);
     return [];
   }
-  return data;
 };
 
 export const createAsset = async ({
@@ -33,16 +71,22 @@ export const createAsset = async ({
   estado,
   disponibilidad,
   categoria,
+  file
 }: {
   company_id: number;
   name: string;
   precio: number;
   estado: string;
   disponibilidad: boolean;
+  file?: File;
   categoria: number;
 }): Promise<{ client: Asset | null; success: boolean }> => {
-  // return {client: null, success: false};
   console.log({ company_id, name, precio, estado, disponibilidad, categoria });
+  let uploadedFile: string | null = null;
+  if (file) {
+    const result = await uploadFile({ bucket: "assets", url: "assets", file: file });
+    if (result.success) uploadedFile = result.data;
+  }
   const { data, error } = await supabase.from("asset").insert([
     {
       company_id: company_id,
@@ -51,13 +95,14 @@ export const createAsset = async ({
       estado: estado,
       disponibilidad: disponibilidad,
       categoria_id: categoria,
+      file: uploadedFile,
     },
   ]);
 
   console.log("Cliente creado:", data, "Error:", error);
 
   if (error) {
-    console.log("Error creando cliente:", error);
+    console.log("Error creando asset:", error);
     return { client: null, success: false };
   }
 
@@ -113,7 +158,7 @@ export const deleteAsset = async ({
   const { data, error } = await supabase
     .from("asset")
     .update({
-        active: false
+      active: false
     })
     .eq("id", id);
 

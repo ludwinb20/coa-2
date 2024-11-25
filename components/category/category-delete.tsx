@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { TrashIcon } from "lucide-react";
 import { deleteCategory } from "@/services/category";
+import { Bin } from "@/icons/icons";
 
 
 
@@ -41,7 +42,9 @@ const DeleteCategory = ({ category }: { category: Category }) => {
   return (
     <AlertDialog open={open}>
       <AlertDialogTrigger>
-        <TrashIcon color="red" onClick={() => setOpen(true)} />
+      <Button variant="outline" className="border border-destructive" onClick={() => setOpen(true)}>  
+          <Bin color="red" />
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-2xl max-h-[40vh] h-auto overflow-y-auto">
         <AlertDialogHeader>

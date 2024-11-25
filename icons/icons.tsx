@@ -70,6 +70,7 @@ const CalendarIcon = (props: IconProps) => {
   );
 };
 
+
 const ConversacionesIcon = (props: IconProps) => {
   return (
     <svg
@@ -2659,6 +2660,10 @@ function SquareCheck(props: IconProps) {
   );
 }
 
+
+
+
+
 const PhoneVolumeIcon = (props: IconProps) => {
   return (
     <svg
@@ -2862,6 +2867,24 @@ const PersonsTalkingIcon = (props: IconProps) => {
     </svg>
   );
 };
+
+const ObserveIcon = (props: IconProps) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="24"
+      viewBox="0 0 24 24"
+      width="24"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M12 4.5C7.5 4.5 3.5 8.5 2 12c1.5 3.5 5.5 7.5 10 7.5s8.5-4 10-7.5c-1.5-3.5-5.5-7.5-10-7.5zm0 13.5c-3 0-5.5-2.5-5.5-5.5S9 6.5 12 6.5s5.5 2.5 5.5 5.5-2.5 5.5-5.5 5.5zm0-9c-1.5 0-2.5 1-2.5 2.5S10.5 13 12 13s2.5-1 2.5-2.5S13.5 8 12 8z" />
+    </svg>
+  );
+ ;
+} 
+
+
 
 const LikeIcon = (props: IconProps) => {
   return (
@@ -3419,4 +3442,5 @@ export {
   ReplyLeftIcon,
   PinIcon,
   MicIcon,
+  ObserveIcon
 };

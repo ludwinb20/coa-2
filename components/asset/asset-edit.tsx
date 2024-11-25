@@ -101,7 +101,9 @@ const EditAsset = ({ asset }: { asset: Asset }) => {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger>
-        <EditIcon onClick={() => setOpen(true)} />
+      <Button variant="outline" className="border border-primary" onClick={() => setOpen(true)}>
+          <EditIcon />
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-2xl max-h-[40vh] h-auto overflow-y-auto">
         <AlertDialogHeader>

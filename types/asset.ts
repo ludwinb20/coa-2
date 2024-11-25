@@ -4,10 +4,16 @@ export type Asset = {
     estado: string;
     precio: number;
     categoria_id: number;
-    fotografia: string;
+    file: string | null;
+    url?: string | null;
     disponibilidad: boolean;
     company_id: number;
     created_at: string;
+    category?: {
+      id: number;
+      nombre: string;
+      descripcion: string;
+    };
   };
 
 

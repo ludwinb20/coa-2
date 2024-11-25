@@ -12,11 +12,17 @@ import EditClient from "../clients/clients-edit";
 import DeleteClient from "../clients/clients-delete";
 import EditAsset from "./asset-edit";
 import DeleteAsset from "./asset-delete";
+import ViewAsset from "./asset-view";
 
 
 const HandleEdit = ({row}:{row: Asset}) => {
   const [asset, setAsset] = useState<Asset>(row);
   return <EditAsset asset={asset} />;
+};
+
+const HandleView = ({row}:{row: Asset}) => {
+  const [asset, setAsset] = useState<Asset>(row);
+  return <ViewAsset asset={asset} />;
 };
 
 const HandleDelete = ({row}:{row: Asset}) => {
@@ -32,18 +38,12 @@ export const columnsAsset: ColumnDef<Asset>[] = [
         return <p>{row.original.nombre ?? ""}</p>;
       },
   },
+ 
   {
-    accessorKey: "precio",
-    header: "Precio",
+    accessorKey: "category",
+    header: "Categoría",
     cell: ({ row }) => {
-        return <p>{row.original.precio ?? ""}</p>;
-      },
-  },
-  {
-    accessorKey: "categoria_id",
-    header: "Categoria",
-    cell: ({ row }) => {
-        return <p>{row.original.categoria_id ?? ""}</p>;
+        return <p>{row.original.category?.nombre ?? "Sin categoría"}</p>;
       },
   },
   {
@@ -57,6 +57,7 @@ export const columnsAsset: ColumnDef<Asset>[] = [
         return <div className="flex justify-center items-center gap-x-2">
            <HandleEdit row={row.original}/>
            <HandleDelete row={row.original}/>
+           <HandleView row={row.original}/>
         </div>
       },
   }
