@@ -48,5 +48,21 @@ export const routes: Route[] = [
           roles: [1, 2, 3, 4],
         },
       ],
-    }
+    },
+    {
+      id: 2,
+      title: "Recurso humano",
+      href: "/dashboard/users",
+      icon: AccountCircleIcon,
+      space: false,
+      roles: rolesPermsisssions.access_clients_index,
+    },
+    {
+      id: 4,
+      title: "Icons",
+      href: "/dashboard/icons",
+      icon: InventoryIcon,
+      space: false,
+      roles: [1, 2, 3, 4],
+    },
 ]
