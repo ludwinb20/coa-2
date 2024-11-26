@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { TrashIcon } from "lucide-react";
 import { deleteCategory } from "@/services/category";
 import { Bin } from "@/icons/icons";
+import rolesPermissions from "@/utils/roles";
 
 
 
@@ -38,6 +39,10 @@ const DeleteCategory = ({ category }: { category: Category }) => {
 
     toast.error("No se pudo eliminar el activo");
   };
+
+  if(!rolesPermissions.clients_delete.includes(user.profile.rol_id)){
+    return null;
+  }
 
   return (
     <AlertDialog open={open}>

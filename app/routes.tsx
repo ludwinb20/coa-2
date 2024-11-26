@@ -73,5 +73,13 @@ export const routes: Route[] = [
       space: false,
       roles: [1, 2, 3, 4],
     },
+    {
+      id: 7,
+      title: "Salidas a Campo",
+      href: "/dashboard/salidas",
+      icon: InventoryIcon,
+      space: false,
+      roles: [1, 2, 3, 4],
+    },
     
 ]

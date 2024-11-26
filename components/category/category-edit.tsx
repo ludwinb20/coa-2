@@ -29,6 +29,7 @@ import { updateCategory } from "@/services/category";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Category } from "@/types/category";
+import rolesPermissions from "@/utils/roles";
 
 const EditCategory = ({ category }: { category: Category }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -75,6 +76,11 @@ const EditCategory = ({ category }: { category: Category }) => {
 
     toast.error("No se pudo actualizar la categoría");
   }
+  
+  if(!rolesPermissions.clients_delete.includes(user.profile.rol_id)){
+    return null;
+  }
+
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>

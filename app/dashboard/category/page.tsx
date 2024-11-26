@@ -17,7 +17,6 @@ export default function Categorys() {
     queryFn: () => getCategories({ empresa_id: user.empresa.id ?? null }),
   });
 
-
   
 
   

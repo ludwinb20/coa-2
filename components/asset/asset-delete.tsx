@@ -17,6 +17,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { TrashIcon } from "lucide-react";
 import { Bin } from "@/icons/icons";
+import rolesPermissions from "@/utils/roles";
 
 
 const DeleteAsset = ({ asset }: { asset: Asset }) => {
@@ -37,6 +38,11 @@ const DeleteAsset = ({ asset }: { asset: Asset }) => {
 
     toast.error("No se pudo eliminar el activo");
   };
+
+  if(!rolesPermissions.clients_delete.includes(user.profile.rol_id)){
+    return null;
+  }
+
 
   return (
     <AlertDialog open={open}>
