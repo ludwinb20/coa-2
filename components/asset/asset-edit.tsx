@@ -28,6 +28,7 @@ import { useSession } from "@/app/session-provider";
 import { updateAsset } from "@/services/asset";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import rolesPermissions from "@/utils/roles";
 
 const EditAsset = ({ asset }: { asset: Asset }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -98,10 +99,16 @@ const EditAsset = ({ asset }: { asset: Asset }) => {
     toast.error("No se pudo actualizar el activo");
   }
 
+  if(user && !rolesPermissions.clients_delete.includes(user?.profile.rol_id)){
+    return null;
+  }
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger>
-        <EditIcon onClick={() => setOpen(true)} />
+      <Button variant="outline" className="border border-primary" onClick={() => setOpen(true)}>
+          <EditIcon />
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-2xl max-h-[40vh] h-auto overflow-y-auto">
         <AlertDialogHeader>

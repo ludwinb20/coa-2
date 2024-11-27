@@ -11,14 +11,11 @@ import { getCategories } from "@/services/category";
 
 
 export default function Categorys() {
-  //const [assets, setAssets] = useState<Asset[]>([]);
-  //console.log("Assets:", assets);
   const { user } = useSession();
   const { data: category, isLoading } = useQuery({
     queryKey: ["category", user?.id],
     queryFn: () => getCategories({ empresa_id: user?.empresa.id ?? null }),
   });
-
 
   
 

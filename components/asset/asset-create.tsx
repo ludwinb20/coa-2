@@ -1,4 +1,5 @@
 "use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   Form,
@@ -20,11 +21,30 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createAsset } from "@/services/asset";
 import { Select } from "../ui/select";
+import Dropzone from "@/components/ui/dropzone";
+import { useState, useEffect } from "react";
+import { ReloadIcon } from "@/icons/icons";
+import { getCategories } from "@/services/category";
 
-const ClientsCreate = () => {
+const AssetCreate = () => {
   const { user } = useSession();
   const router = useRouter();
-  
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [categories, setCategories] = useState<{ id: number, nombre: string }[]>([]);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      const response = await getCategories({ empresa_id: user?.empresa.id ?? null });
+      if (response.length > 0) {
+        setCategories(response);
+      } else {
+        toast.error("No se pudieron cargar las categorías");
+      }
+    }
+    fetchCategories();
+  }, []);
+
   const formSchema = z.object({
     nombre: z
       .string({
@@ -63,20 +83,24 @@ const ClientsCreate = () => {
       nombre: "",
       precio: 0,
       estado: "",
-      disponibilidad: "disponible", // Valor por defecto
+      disponibilidad: "disponible",
       categoria: 0,
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setSaving(true);
     const resultado = await createAsset({
-      company_id: user.empresa.id,
+      company_id: user?.empresa.id ?? 0,
       name: values.nombre,
       precio: values.precio,
       estado: values.estado,
       disponibilidad: values.disponibilidad === "disponible",
       categoria: values.categoria,
+      file: selectedFile ?? undefined
     });
+
+    setSaving(false);
     if (resultado.success) {
       toast.success("Cliente creado exitosamente");
       router.push('/dashboard/asset_Management');
@@ -94,7 +118,6 @@ const ClientsCreate = () => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {/* Fila 1 */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -172,21 +195,44 @@ const ClientsCreate = () => {
                   <FormItem>
                     <FormLabel>Categoría</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="Ej. 1" 
-                        {...field} 
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) )}
-                      />
+                      <select
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                        className="border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 block w-full"
+                      >
+                        <option value="">Seleccione una categoría</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.nombre}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
-                    <FormDescription>Categoría del producto (número).</FormDescription>
+                    <FormDescription>Seleccione la categoría del producto.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
 
-            <Button type="submit">Crear</Button>
+            {/* Dropzone para el archivo */}
+            <div className="grid grid-cols-2 gap-4">
+              <Dropzone
+                onDrop={(files) => setSelectedFile(files[0])}
+                onDelete={() => setSelectedFile(null)}
+                className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
+                text="Arrastre un archivo aquí o haga click para seleccionar un archivo"
+              />
+              {selectedFile && (
+                <p className="text-sm text-gray-500">
+                  Archivo seleccionado: {selectedFile.name}
+                </p>
+              )}
+            </div>
+
+            <Button type="submit" disabled={saving}>
+              {saving ? <ReloadIcon className="animate-spin" /> : "Crear"}
+            </Button>
           </form>
         </Form>
       </CardContent>
@@ -194,4 +240,4 @@ const ClientsCreate = () => {
   );
 };
 
-export default ClientsCreate;
+export default AssetCreate;
