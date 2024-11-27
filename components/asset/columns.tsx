@@ -1,12 +1,11 @@
 "use client";
 
-import { Asset } from "@/types/asset";
+import { Asset, Client } from "@/types/models";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "../ui/button";
 import { EditIcon } from "@/icons/icons";
 import { DeleteIcon, XIcon } from "lucide-react";
-import { Client } from "@/types/clients";
 import { useState } from "react";
 import EditClient from "../clients/clients-edit";
 import DeleteClient from "../clients/clients-delete";

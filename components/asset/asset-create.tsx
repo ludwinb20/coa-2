@@ -69,7 +69,6 @@ const ClientsCreate = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
     const resultado = await createAsset({
       company_id: user.empresa.id,
       name: values.nombre,
@@ -78,9 +77,7 @@ const ClientsCreate = () => {
       disponibilidad: values.disponibilidad === "disponible",
       categoria: values.categoria,
     });
-    console.log('Resultado:', resultado);
     if (resultado.success) {
-      console.log('Cliente creado exitosamente');
       toast.success("Cliente creado exitosamente");
       router.push('/dashboard/asset_Management');
       return;

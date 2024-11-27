@@ -1,4 +1,4 @@
-import { Asset } from "@/types/asset";
+import { Asset } from "@/types/models";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -80,7 +80,7 @@ const EditAsset = ({ asset }: { asset: Asset }) => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const resultado = await updateAsset({
       id: asset.id,
-      company_id: user.empresa.id,
+      company_id: user?.empresa.id ?? 0,
       name: values.nombre,
       precio: values.precio,
       estado: values.estado,
@@ -90,7 +90,7 @@ const EditAsset = ({ asset }: { asset: Asset }) => {
 
     if (resultado.success) {
       toast.success("Activo actualizado exitosamente");
-      queryClient.invalidateQueries({ queryKey: ["assets", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["assets", user?.id] });
       setOpen(false);
       return;
     }

@@ -1,18 +1,16 @@
 "use client";
 
-import { Asset } from "@/types/asset";
+import { Asset, Client , Category} from "@/types/models";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "../ui/button";
 import { EditIcon } from "@/icons/icons";
 import { DeleteIcon, XIcon } from "lucide-react";
-import { Client } from "@/types/clients";
 import { useState } from "react";
 
 import DeleteClient from "../clients/clients-delete";
 import EditAsset from "../asset/asset-edit";
 import DeleteAsset from "../asset/asset-delete";
-import { Category } from "@/types/category";
 import EditCategory from "./category-edit";
 import DeleteCategory from "./category-delete";
 

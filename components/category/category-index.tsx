@@ -1,11 +1,8 @@
 "use client";
-import { Asset,  } from "@/types/asset";
-
-
+import { Asset, Category } from "@/types/models";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { Category } from "@/types/category";
 import { columnsCategory } from "./columns";
 import { DataTableCategory } from "./table";
 

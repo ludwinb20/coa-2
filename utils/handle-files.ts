@@ -21,9 +21,6 @@ export const uploadFile = async ({bucket, url, file}:{bucket: string, url:string
       .upload(direccion, file, {
         upsert: true,
       });
-
-      console.log('File uploaded:', data, 'Error:', error);
-
     if (error) {
       console.log('Error uploading file: ', error);
       return {data: null, success: false};
@@ -40,7 +37,6 @@ export const deleteFile = async ({bucket, url}:{bucket: string, url:string}) => 
   try {
     let array : string[] = [];
     array.push(url);
-  console.log('deleteFile', bucket, array);
     const { data, error } = await supabase.storage
       .from(bucket)
       .remove(array);

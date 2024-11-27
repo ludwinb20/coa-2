@@ -2,7 +2,7 @@
 import { useSession } from "@/app/session-provider";
 
 import { getAsset } from "@/services/asset";
-import { Asset } from "@/types/asset";
+import { Asset } from "@/types/models";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import CategoryIndex from "@/components/category/category-index";
@@ -15,8 +15,8 @@ export default function Categorys() {
   //console.log("Assets:", assets);
   const { user } = useSession();
   const { data: category, isLoading } = useQuery({
-    queryKey: ["category", user.id],
-    queryFn: () => getCategories({ empresa_id: user.empresa.id ?? null }),
+    queryKey: ["category", user?.id],
+    queryFn: () => getCategories({ empresa_id: user?.empresa.id ?? null }),
   });
 
 

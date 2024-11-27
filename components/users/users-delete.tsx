@@ -1,4 +1,4 @@
-import { Asset } from "@/types/models";
+import { Client, UserProfile } from "@/types/models";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -12,39 +12,43 @@ import {
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { useSession } from "@/app/session-provider";
-import { deleteAsset } from "@/services/asset"; // Asegúrate de que esta función esté definida
+import { deleteUser } from "@/services/users";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { TrashIcon } from "lucide-react";
+import { Bin } from "@/icons/icons";
+import rolesPermissions from "@/utils/roles";
 
-
-const DeleteAsset = ({ asset }: { asset: Asset }) => {
+const DeleteUsers = ({ userProfile }: { userProfile: UserProfile }) => {
   const [open, setOpen] = useState<boolean>(false);
   const { user } = useSession();
   const queryClient = useQueryClient();
-
   const handleDelete = async () => {
-    const resultado = await deleteAsset({
-      id: asset.id,
+    const resultado = await deleteUser({
+      id: userProfile.id,
     });
     if (resultado.success) {
-      toast.success("Activo eliminado exitosamente");
-      queryClient.invalidateQueries({ queryKey: ["assets", user?.empresa.id] });
+      toast.success("Uusario eliminado exitosamente");
+      queryClient.invalidateQueries({ queryKey: ["users", user?.id] });
       setOpen(false);
       return;
     }
 
-    toast.error("No se pudo eliminar el activo");
+    toast.error("No se pudo eliminar el usuario");
   };
 
+  if(user && !rolesPermissions.clients_delete.includes(user?.profile.rol_id)){
+    return null;
+  }
   return (
     <AlertDialog open={open}>
       <AlertDialogTrigger>
-        <TrashIcon color="red" onClick={() => setOpen(true)} />
+        <Button variant="outline" className="border border-destructive" onClick={() => setOpen(true)}>  
+          <Bin color="red" />
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-2xl max-h-[40vh] h-auto overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle>¿Eliminar activo?</AlertDialogTitle>
+          <AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
           <AlertDialogDescription>
             Esta acción no se puede deshacer.
           </AlertDialogDescription>
@@ -62,4 +66,4 @@ const DeleteAsset = ({ asset }: { asset: Asset }) => {
   );
 };
 
-export default DeleteAsset;
+export default DeleteUsers;

@@ -3,6 +3,8 @@ import {
   AccountCircleIcon,
     HomeIconLaravel,
     InventoryIcon,
+    UserIcon,
+    WalletLaravelIcon,
   } from "@/icons/icons";
 import rolesPermsisssions from "@/utils/roles";
 
@@ -50,18 +52,18 @@ export const routes: Route[] = [
       ],
     },
     {
-      id: 2,
+      id: 6,
       title: "Recurso humano",
       href: "/dashboard/users",
-      icon: AccountCircleIcon,
+      icon: UserIcon,
       space: false,
       roles: rolesPermsisssions.access_clients_index,
     },
     {
-      id: 4,
+      id: 7,
       title: "Icons",
       href: "/dashboard/icons",
-      icon: InventoryIcon,
+      icon: WalletLaravelIcon,
       space: false,
       roles: [1, 2, 3, 4],
     },

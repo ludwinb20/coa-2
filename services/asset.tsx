@@ -1,4 +1,4 @@
-import { Asset } from "@/types/asset";
+import { Asset } from "@/types/models";
 import { createClient } from "@/utils/supabase/client";
 
 const supabase = createClient();
@@ -8,7 +8,6 @@ export const getAsset = async ({
 }: {
   empresa_id: number | null;
 }): Promise<Asset[]>  => {
-  console.log("Empresa ID:", empresa_id);
   if (!empresa_id) return [];
   const { data, error } = await supabase
     .from("asset")
@@ -18,7 +17,6 @@ export const getAsset = async ({
     .order("id", {
       ascending: true,
     });;
-  console.log("Assets:", data, "Error:", error);
   if (error) {
     console.error("Error fetching Assets:", error);
     return [];
@@ -42,7 +40,6 @@ export const createAsset = async ({
   categoria: number;
 }): Promise<{ client: Asset | null; success: boolean }> => {
   // return {client: null, success: false};
-  console.log({ company_id, name, precio, estado, disponibilidad, categoria });
   const { data, error } = await supabase.from("asset").insert([
     {
       company_id: company_id,
@@ -54,7 +51,6 @@ export const createAsset = async ({
     },
   ]);
 
-  console.log("Cliente creado:", data, "Error:", error);
 
   if (error) {
     console.log("Error creando cliente:", error);
@@ -81,7 +77,6 @@ export const updateAsset = async ({
   disponibilidad: boolean;
   categoria: number;
 }): Promise<{ client: Asset | null; success: boolean }> => {
-  console.log({ id, company_id, name, precio, estado, disponibilidad, categoria });
   const { data, error } = await supabase
     .from("asset")
     .update({
@@ -93,8 +88,6 @@ export const updateAsset = async ({
       categoria_id: categoria,
     })
     .eq("id", id); // Actualiza el activo con el ID especificado
-
-  console.log("Activo actualizado:", data, "Error:", error);
 
   if (error) {
     console.log("Error actualizando activo:", error);
@@ -109,15 +102,12 @@ export const deleteAsset = async ({
 }: {
   id: number;
 }): Promise<{ asset: Asset | null; success: boolean }> => {
-  console.log({ id });
   const { data, error } = await supabase
     .from("asset")
     .update({
         active: false
     })
     .eq("id", id);
-
-  console.log("Activo eliminado:", data, "Error:", error);
 
   if (error) {
     console.log("Error eliminando activo:", error);

@@ -1,4 +1,4 @@
-import { Category } from "@/types/category";
+import { Category } from "@/types/models";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -30,7 +30,7 @@ const DeleteCategory = ({ category }: { category: Category }) => {
     });
     if (resultado.success) {
       toast.success("Activo eliminado exitosamente");
-      queryClient.invalidateQueries({ queryKey: ["category", user.empresa.id] });
+      queryClient.invalidateQueries({ queryKey: ["category", user?.empresa.id] });
       setOpen(false);
       return;
     }

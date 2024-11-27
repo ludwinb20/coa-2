@@ -1,4 +1,5 @@
-import { supabase } from './client';
+import { createClient } from './client';
+const supabase = createClient();
 
 export async function fetchDepartments() {
   const { data, error } = await supabase

@@ -1,4 +1,4 @@
-import { Client } from "@/types/clients";
+import { Client } from "@/types/models";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -28,7 +28,7 @@ const DeleteClient = ({ client }: { client: Client }) => {
     });
     if (resultado.success) {
       toast.success("Cliente eliminado exitosamente");
-      queryClient.invalidateQueries({ queryKey: ["clientes", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["clientes", user?.id] });
       setOpen(false);
       return;
     }
@@ -36,7 +36,7 @@ const DeleteClient = ({ client }: { client: Client }) => {
     toast.error("No se pudo crear el cliente");
   };
 
-  if(!rolesPermissions.clients_delete.includes(user.profile.rol_id)){
+  if(user && !rolesPermissions.clients_delete.includes(user?.profile.rol_id)){
     return null;
   }
   return (

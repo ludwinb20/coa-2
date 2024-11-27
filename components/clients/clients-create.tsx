@@ -73,17 +73,14 @@ const ClientsCreate = () => {
     // const resultado = await createClients(formData); // Enviar FormData en lugar de un objeto JSON
     
     const resultado = await createClients({
-        company_id: user.empresa.id,
+        company_id: user?.empresa.id ?? 0,
         name: values.nombre,
         rtn: values.rtn,
         file: selectedFile ?? undefined
       });
 
-
-    console.log("Resultado:", resultado);
       setSaving(false);
     if (resultado.success) {
-      console.log("Cliente creado exitosamente");
       toast.success("Cliente creado exitosamente");
       router.push("/dashboard/clients");
       return;

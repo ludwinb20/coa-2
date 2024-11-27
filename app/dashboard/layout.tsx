@@ -16,10 +16,6 @@ export default async function DashboardLayout ({children}: {children: ReactNode}
   
     const user = userResponse.data;
     // console.log('User:', user);
-    
-    if(!user){
-        return redirect('/login');
-    }
 
   return (
     <div className="grid w-full h-full grid-cols-[300px_1fr]">

@@ -1,8 +1,6 @@
-import { Client } from "@/types/clients";
+import { Client } from "@/types/models";
 import { uploadFile } from "@/utils/handle-files";
 import { createClient } from "@/utils/supabase/client";
-import { v4 as uuidv4 } from "uuid";
-
 const supabase = createClient();
 
 export const getClients = async ({
@@ -54,7 +52,6 @@ export const getClients = async ({
         })
       );
   
-      console.log(clientsWithFiles);
       return clientsWithFiles;
     } catch (error) {
       console.error("Error inesperado en getClients:", error);
@@ -74,7 +71,6 @@ export const createClients = async ({
   rtn: string;
   file?: File;
 }): Promise<{ client: Client | null; success: boolean }> => {
-    console.log({company_id, name, rtn, file});
     let uploadedFile: string | null = null;
     if(file){
         const result = await uploadFile({bucket: "avatars", url: "clients", file: file});
@@ -90,7 +86,6 @@ export const createClients = async ({
     },
   ]);
 
-  console.log("Cliente creado:", data, "Error:", error);
 
   if (error) {
     console.log("Error creando cliente:", error);
@@ -120,7 +115,6 @@ export const updateClient = async ({
         if(result.success) filefiltrado = result.data;
     }
 
-
   const { data, error } = await supabase
     .from("clients")
     .update({
@@ -129,8 +123,6 @@ export const updateClient = async ({
       file: filefiltrado
     })
     .eq("id", id);
-
-  console.log("Cliente actualizado:", data, "Error:", error);
 
   if (error) {
     console.log("Error actualizando cliente:", error);
@@ -146,15 +138,12 @@ export const deleteCliente = async ({
   id: number;
 }): Promise<{ client: Client | null; success: boolean }> => {
   // return {client: null, success: false};
-  console.log({ id });
   const { data, error } = await supabase
     .from("clients")
     .update({
         active: false
     })
     .eq("id", id);
-
-  console.log("Cliente eliminado:", data, "Error:", error);
 
   if (error) {
     console.log("Error eliminando cliente:", error);

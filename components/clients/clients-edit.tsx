@@ -1,4 +1,4 @@
-import { Client } from "@/types/clients";
+import { Client } from "@/types/models";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -91,14 +91,14 @@ const EditClient = ({ client }: { client: Client }) => {
 
     if (resultado.success) {
       toast.success("Cliente actualizado exitosamente");
-      queryClient.invalidateQueries({ queryKey: ["clientes", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["clientes", user?.id] });
       setOpen(false);
     } else {
       toast.error("No se pudo actualizar el cliente");
     }
   }
 
-  if(!rolesPermissions.clients_edit.includes(user.profile.rol_id)){
+  if(user && !rolesPermissions.clients_edit.includes(user?.profile.rol_id)){
     return null;
   }
 

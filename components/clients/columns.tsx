@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../ui/button";
 import { EditIcon } from "@/icons/icons";
 import { DeleteIcon, XIcon } from "lucide-react";
-import { Client } from "@/types/clients";
+import { Client } from "@/types/models";
 import EditClient from "./clients-edit";
 import { useState } from "react";
 import DeleteClient from "./clients-delete";

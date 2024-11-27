@@ -2,12 +2,15 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { UserFront } from '@/types/users';
 
-const SessionContext = createContext<{ user: any | null }>({ user: null });
+const SessionContext = createContext<{ user: UserFront | null }>({ user: null });
 
-export function SessionProvider({user, children }: {user: any, children: React.ReactNode }) {
-  const [userstate, setUserstate] = useState<any | null>(user);
+export function SessionProvider({user, children }: {user: UserFront | null, children: React.ReactNode }) {
+  const [userstate, setUserstate] = useState<UserFront | null>(user);
   const supabase = createClient();
+
+  console.log('User:', user);
 
   useEffect(() => {
     // Obtener el usuario actual

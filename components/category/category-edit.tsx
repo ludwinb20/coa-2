@@ -28,7 +28,7 @@ import { useSession } from "@/app/session-provider";
 import { updateCategory } from "@/services/category";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Category } from "@/types/category";
+import { Category } from "@/types/models";
 
 const EditCategory = ({ category }: { category: Category }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -55,7 +55,7 @@ const EditCategory = ({ category }: { category: Category }) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       nombre: category.nombre,
-      company_id: user.empresa.id,
+      company_id: user?.empresa.id,
       descripcion: category.descripcion,
     },
   });
@@ -68,7 +68,7 @@ const EditCategory = ({ category }: { category: Category }) => {
 
     if (resultado.success) {
       toast.success("Categoría actualizada exitosamente");
-      queryClient.invalidateQueries({ queryKey: ["categories", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["categories", user?.id] });
       setOpen(false);
       return;
     }

@@ -11,20 +11,6 @@ const PUBLIC_FILE = /\.(.*)$/;
 
 
 export async function middleware(request: NextRequest) {
-  // const url = request.nextUrl.clone();
-
-  // if (
-  //   PUBLIC_FILE.test(url.pathname) ||
-  //   url.pathname.includes('_next') ||
-  //   ['/login', '/', '/error'].includes(url.pathname)
-  // ) {
-  //   return NextResponse.next();
-  // }
-
-  // Verificar cookies
-  
-  // Actualizar la sesión
-
   return NextResponse.next();
 }
 

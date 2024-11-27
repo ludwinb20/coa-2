@@ -1,5 +1,5 @@
 "use client";
-import { Asset } from "@/types/asset";
+import { Asset } from "@/types/models";
 import { DataTableAsset } from "./table";
 import { columnsAsset } from "./columns";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
