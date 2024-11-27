@@ -7,7 +7,14 @@ import { DeleteIcon, XIcon } from "lucide-react";
 import { Client } from "@/types/clients";
 import { useState } from "react";
 import { Campo } from "@/types/models";
+import CampoList from "./salidas-carousel";
+import { useRouter } from "next/navigation";
+import SimpleButtonRedirect from "./redirect";
 
+const HandleView = ({row}:{row: Campo}) => {
+  const [campo, setAsset] = useState<Campo>(row);
+  return <CampoList campoid={campo.id} />; // Usa campo.id en lugar de campo
+};
 export const columnsCampo: ColumnDef<Campo>[] = [
    {
      accessorKey: "proyecto_id",
@@ -61,6 +68,21 @@ export const columnsCampo: ColumnDef<Campo>[] = [
       
       // If it's neither a Date nor a string, or is null/undefined
       return <p>{fechaInicio ?? ""}</p>;
+    },
+
+  },
+  {
+    accessorKey: "actions",
+    header: () => (
+      <div className="flex justify-center items-center">Acciones</div>
+    ),
+    cell: ({ row }) => {
+      const router = useRouter();
+      return (
+        <div className="flex justify-center items-center gap-x-2">
+        <SimpleButtonRedirect id={row.original.id} />
+        </div>
+      );
     },
   },
 ];

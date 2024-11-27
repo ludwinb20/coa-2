@@ -97,9 +97,19 @@ export type Departamento = {
     id : number;
     campo_id : number;
     asset_id: number;
+    assets?:{
+      id: number;
+      nombre: string;
+      file: string | null;
+      url?: string | null;
+      precio: number;
+      categoria_id: number;
+      disponibilidad: boolean;
+      company_id: number;
+      created_at: string;
     estado: boolean;
     usuario_id: UUID;
-
+    }
   }
 
   export type CampoUsuarios = {
