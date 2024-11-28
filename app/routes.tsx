@@ -31,7 +31,6 @@ export const routes: Route[] = [
     {
       id: 3,
       title: "Gestion de Activos",
-      //href: "/dashboard/asset_Management",
       icon: InventoryIcon,
       space: false,
       roles: [1, 2, 3, 4],
@@ -71,8 +70,8 @@ export const routes: Route[] = [
         },
         {
           id: 12,
-          title: "Marcajes",
-          href: "/dashboard/users/marcajes",
+          title: "Control de horario",
+          href: "/dashboard/users/schedule-control",
           icon: BadgeIcon,
           space: false,
           roles: [1, 2, 3, 4],

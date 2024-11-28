@@ -1,22 +1,18 @@
 "use client";
-import { useSession } from "@/app/session-provider";
-import ClientsIndex from "@/components/clients/clients-index";
-import NotAllowed from "@/components/layout/not-allowed";
-import { getClients } from "@/services/clients";
-// import { useEffect, useState } from "react";
-// import { Client } from "@/types/clients";
+
 import { useQuery } from "@tanstack/react-query";
 import rolesPermissions from "@/utils/roles";
 import { getSalidas } from "@/services/salidas";
-import CamposIndex from "@/components/salidas/salidas-index";
 import CampoList from "@/components/salidas/salidas-carousel";
+import NotAllowed from "@/components/layout/not-allowed";
+import { useSession } from "@/app/session-provider";
 
-export default function Campo() {
+ function Campo(Props: any) {
   const { user } = useSession();
 
   
   const { data: campo, isLoading } = useQuery({
-    queryKey: ["campo", user.id],
+    queryKey: ["campo", user],
     queryFn: () => getSalidas(),
   });
 
@@ -24,14 +20,18 @@ export default function Campo() {
     return <NotAllowed />;
   }
 
+  const { id } = ( Props.params);
+
   return (
     <div className="p-6">
       {isLoading ? (
         <div>Cargando campos...</div>
       ) : (
-        <CamposIndex campos={campo ?? []} />
-       //<CampoList campoid={1} />
+
+       <CampoList campoid={id} />
       )}
     </div>
   );
 }
+
+export default Campo;
