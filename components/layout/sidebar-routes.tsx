@@ -1,94 +1,51 @@
 "use client";
+
 import { Route } from "@/types/utils";
 import { IconProps } from "@/icons/type";
 import { cn } from "@/lib/utils";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ComponentType, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "@/app/session-provider";
+import { isArray } from "util";
+
+const MotionLink = motion(Link);
 
 interface NestedLinkProps {
   href: string;
   name: string;
-  space?: boolean;
   icon: ComponentType<IconProps>;
   isLast: boolean;
 }
 
-const MotionLink = motion(Link);
-function NestedLink({
-  href,
-  name,
-  icon,
-}: NestedLinkProps) {
-  const [isHovered, setIsHovered] = useState(false);
+function NestedLink({ href, name, icon }: NestedLinkProps) {
   const pathname = usePathname();
   const isActive = pathname === href;
   const Icon = icon;
-
-  // if (laravel) {
-  //   return (
-  //     <a
-  //       href={href}
-  //       className={cn(
-  //         "relative flex flex-row items-center py-2 focus:outline-none"
-  //       )}
-  //       // onMouseEnter={() => setIsHovered(true)}
-  //       // onMouseLeave={() => setIsHovered(false)}
-  //     >
-  //       <span
-  //         className={cn(
-  //           "inline-flex justify-center items-center",
-  //           // isHovered ? "ml-[42px]" : ""
-  //         )}
-  //       >
-  //         {icon && <Icon className="w-6 h-6" />}
-  //       </span>
-  //       <span className="truncate  text-[15.4px] ">{name}</span>
-  //     </a>
-  //   );
-  // }
-
-
 
   return (
     <MotionLink
       href={href}
       className={cn(
-        "relative flex flex-row items-center transition-colors duration-200 delay-100 py-2 gap-x-2 px-4 rounded-md ml-6 bg-secondary text-secondary-foreground")}
-      whileHover="hover"
-      initial="rest"
+        "relative flex items-center gap-x-2 px-6 py-2 rounded-md text-muted-foreground transition-all duration-200 ml-4",
+        isActive
+          ? "bg-secondary text-secondary-foreground"
+          : "hover:bg-secondary"
+      )}
+      whileHover={{ scale: 1.02 }}
+      initial={{ scale: 1 }}
     >
       {isActive && (
         <motion.div
-          layoutId="follow"
-          className={cn(
-            "bg-primary z-20 absolute h-full w-0.5 left-0 top-0"
-            // make a botton corner if it is the last element
-          )}
-          transition={{
-            duration: 0.3,
-          }}
-        ></motion.div>
+          layoutId="active-indicator"
+          className="bg-primary absolute left-0 top-0 h-full w-0.5"
+          transition={{ duration: 0.3 }}
+        />
       )}
-      {!isActive && (
-        <div
-          className={cn("bg-secondary z-10 w-0.5 h-full absolute left-0 top-0")}
-        ></div>
-      )}
-      <motion.span
-        className={cn(
-          "inline-flex justify-center items-center z-20"
-          // isHovered ? "ml-[35px]" : ""
-        )}
-        variants={slashMotion}
-      >
-        {icon && <Icon className="w-5 h-5" />}
-      </motion.span>
-      <span className="truncate  text-[15.4px] ">{name}</span>
+      <Icon className="w-5 h-5" />
+      <span className="truncate">{name}</span>
     </MotionLink>
   );
 }
@@ -102,165 +59,100 @@ interface PlainLinkProps {
   roles: number[];
 }
 
-const slashMotion = {
-  rest: { scale: 1 },
-  hover: {
-    scale: 1.2,
-    rotate: 8,
-  },
-};
-
 function PlainLink({
   href,
   name,
   icon,
   space,
   duplicated = false,
-  roles
+  roles,
 }: PlainLinkProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const pathname = usePathname();
   const isActive = pathname === href;
   const Icon = icon;
+  const { user } = useSession();
 
-  const {user} = useSession();
-  
-  if(!user){
-    return null;
-  }
+  if (!user) return null;
 
   const isAllowed = roles.includes(user.profile.rol_id);
-
-  if(!isAllowed){
-    return null;
-  }
+  if (!isAllowed) return null;
 
   return (
     <MotionLink
       href={href}
-      // onMouseEnter={() => setIsHovered(true)}
-      // onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "relative flex flex-row items-center transition-colors duration-200 delay-100 py-2 gap-x-2 px-4 mb-2 rounded-md",
+        "relative flex items-center gap-x-2 px-6 py-2 rounded-md transition-all duration-200",
         isActive && !duplicated
           ? "bg-secondary text-secondary-foreground"
           : "text-muted-foreground hover:bg-secondary"
       )}
-      whileHover="hover"
-      initial="rest"
+      whileHover={{ scale: 1.02 }}
+      initial={{ scale: 1 }}
     >
       {isActive && !duplicated && (
         <motion.div
-          layoutId="follow"
-          className="bg-primary w-0.5 h-full absolute left-0 top-0"
-          transition={{
-            duration: 0.3,
-          }}
-        ></motion.div>
+          layoutId="active-indicator"
+          className="bg-primary absolute left-0 top-0 h-full w-0.5"
+          transition={{ duration: 0.3 }}
+        />
       )}
-      <motion.span
-        className={cn(
-          "inline-flex justify-center items-center z-20"
-          // isHovered ? "ml-[35px]" : ""
-        )}
-        variants={slashMotion}
-      >
-        {icon && <Icon className="w-5 h-5" />}
-      </motion.span>
-      <span className="truncate z-20">{name}</span>
+      <Icon className="w-5 h-5" />
+      <span className="truncate">{name}</span>
     </MotionLink>
   );
 }
 
-export function LinkWithChildren({
-  route,
-}: {
-  route: Route;
-}) {
+export function LinkWithChildren({ route }: { route: Route }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const { user } = useSession();
 
-  const {user} = useSession();
-  if(!user){
-    return null;
-  }
+  if (!user) return null;
 
   const isAllowed = route.roles.includes(user.profile.rol_id);
-
-  if(!isAllowed){
-    return null;
-  }
-
+  if (!isAllowed) return null;
 
   return (
     <>
       <motion.button
         onClick={() => setIsExpanded((prev) => !prev)}
         className={cn(
-          "flex flex-row items-center py-2 rounded-md focus:outline-none transition-colors duration-300 px-4 border-transparent w-full justify-between text-muted-foreground hover:bg-secondary"
+          "flex items-center justify-between w-full px-6 py-2 rounded-md text-muted-foreground hover:bg-secondary transition-colors duration-200"
         )}
-        whileHover="hover"
-        initial="rest"
-        // onMouseEnter={() => setIsHovered(true)}
-        // onMouseLeave={() => setIsHovered(false)}
+        aria-expanded={isExpanded}
+        role="button"
+        whileHover={{ scale: 1.02 }}
+        initial={{ scale: 1 }}
       >
-        <div
-          className={cn(
-            "w-fit inline-flex justify-center items-center"
-            // isHovered ? "ml-[35px]" : ""
-          )}
-        >
-          <motion.span
-            className={cn(
-              "inline-flex justify-center items-center z-20"
-              // isHovered ? "ml-[35px]" : ""
-            )}
-            variants={slashMotion}
-          >
-            {route.icon && <route.icon className="w-5 h-5" />}
-          </motion.span>
-          <span className={cn("ml-4 truncate")}>{route.title}</span>
+        <div className="flex items-center gap-x-2">
+          {route.icon && <route.icon className="w-5 h-5" />}
+          <span className="truncate">{route.title}</span>
         </div>
         <motion.div
-          initial={false}
-          animate={{
-            rotate: isExpanded ? 90 : 0,
-          }}
+          animate={{ rotate: isExpanded ? 90 : 0 }}
+          className="transform transition-transform duration-200"
         >
-          <ChevronRightIcon
-            className={cn(
-              "w-4 h-4 transform transition-transform duration-200"
-            )}
-          />
+          <ChevronRightIcon className="w-4 h-4" />
         </motion.div>
       </motion.button>
-      <AnimatePresence mode="wait">
+      <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.ul
-            initial={{
-              height: 0,
-            }}
-            animate={{
-              height: "auto",
-            }}
-            exit={{
-              height: 0,
-            }}
-            className="truncate"
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            className="overflow-hidden"
           >
-            {route.children?.map((child, idx) => {
-                return (
-                  <li key={child.id}>
-                    <NestedLink
-                      href={child.href as string}
-                      name={child.title}
-                      icon={child.icon as ComponentType<IconProps>}
-                      //@ts-ignore
-                      isLast={idx === route.children?.length - 1}
-                    />
-                  </li>
-                );
-            })}
+            {Array.isArray(route.children) &&
+              (route.children as Array<any>).map((child, idx) => (
+                <li key={child.id}>
+                  <NestedLink
+                    href={child.href as string}
+                    name={child.title}
+                    icon={child.icon as ComponentType<IconProps>}
+                    isLast={idx === route.children!.length - 1} // Aquí "!" asegura que no es undefined
+                  />
+                </li>
+              ))}
           </motion.ul>
         )}
       </AnimatePresence>
@@ -268,11 +160,7 @@ export function LinkWithChildren({
   );
 }
 
-export function LinkWithoutChildren({
-  route,
-}: {
-  route: Route;
-}) {
+export function LinkWithoutChildren({ route }: { route: Route }) {
   return (
     <PlainLink
       href={route.href as string}

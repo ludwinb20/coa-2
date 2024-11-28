@@ -214,8 +214,28 @@ export const deleteUser = async ({
 
 export const sendResetPassowrd = async ({email}:{email: string}) => {
   try{
-    const result = await supabase.auth.resetPasswordForEmail(email);
+    const result = await supabase.auth.resetPasswordForEmail(email,{
+      redirectTo: "http://localhost:3000/reset-password"
+    });
     console.log(result);
+    if (result.error) {
+      console.error('Error resetting password:', result.error);
+      return false;
+    }
+
+    return true;
+  }catch(error){
+    console.log(error)
+    return false;
+  }
+}
+
+export const resetPassowrd = async ({password}:{password: string}) => {
+  try{
+    const result = await supabase.auth.updateUser({
+      password: password
+    })
+    console.log(result)
     if (result.error) {
       console.error('Error resetting password:', result.error);
       return false;

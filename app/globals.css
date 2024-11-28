@@ -36,34 +36,49 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Fondo y texto principal */
+    --background: 220 15% 6%; /* Negro suave con un toque de gris */
+    --foreground: 0 0% 90%; /* Gris claro para texto principal */
+  
+    /* Tarjetas (Cards) */
+    --card: 220 10% 10%; /* Gris oscuro para tarjetas */
+    --card-foreground: 0 0% 85%; /* Gris medio para texto en tarjetas */
+  
+    /* Popovers y Tooltips */
+    --popover: 220 10% 8%; /* Gris muy oscuro */
+    --popover-foreground: 0 0% 80%; /* Gris claro para texto */
+  
+    /* Botones primarios */
+    --primary: 222 28% 20%; /* Azul oscuro para botones */
+    --primary-foreground: 0 0% 95%; /* Gris muy claro para texto en botones primarios */
+  
+    /* Botones secundarios */
+    --secondary: 220 10% 15%; /* Gris oscuro intermedio */
+    --secondary-foreground: 0 0% 85%; /* Gris claro para texto en botones secundarios */
+  
+    /* Colores apagados (Muted) */
+    --muted: 220 10% 10%; /* Gris más oscuro para elementos apagados */
+    --muted-foreground: 0 0% 60%; /* Gris medio para texto en elementos apagados */
+  
+    /* Colores destacados (Accent) */
+    --accent: 222 30% 15%; /* Azul tenue como color de acento */
+    --accent-foreground: 0 0% 98%; /* Blanco para texto en elementos destacados */
+  
+    /* Estados destructivos (Errores) */
+    --destructive: 0 60% 50%; /* Rojo oscuro para errores */
+    --destructive-foreground: 0 0% 90%; /* Gris claro para texto destructivo */
+  
+    /* Bordes e inputs */
+    --border: 220 10% 20%; /* Gris intermedio para bordes */
+    --input: 220 10% 12%; /* Fondo de inputs */
+    --ring: 222 30% 15%; /* Azul tenue para enfoque */
+  
+    /* Adicionales */
+    --gradient: linear-gradient(135deg, hsl(220 15% 6%), hsl(222 30% 15%)); /* Gradiente de fondo */
+    --hover: 220 15% 10%; /* Gris oscuro para hover */
+    --shadow: 0px 4px 12px rgba(0, 0, 0, 0.8); /* Sombra más fuerte */
   }
+  
 }
 
 @layer base {

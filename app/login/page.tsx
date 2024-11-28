@@ -14,7 +14,7 @@
 // }
 
 import { ReactNode } from "react";
-import { Login } from '../../components/login/login';
+import { Login }  from '../../components/login/login';
 import { getUser } from "@/actions/user";
 import { redirect } from "next/navigation";
 

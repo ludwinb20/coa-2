@@ -10,15 +10,13 @@ export function SessionProvider({user, children }: {user: UserFront | null, chil
   const [userstate, setUserstate] = useState<UserFront | null>(user);
   const supabase = createClient();
 
-  console.log('User:', user);
+  // console.log('User:', user);
 
   useEffect(() => {
-    // Obtener el usuario actual
-
-    // Escuchar cambios en la autenticación
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(event)
      if(!session) setUserstate(null);
     });
     return () => subscription.unsubscribe();

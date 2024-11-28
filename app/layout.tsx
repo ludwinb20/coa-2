@@ -69,7 +69,9 @@ export default async function RootLayout({ children }: PropsWithChildren<{}>) {
           <SessionProvider user={user ?? null}>
             <RootProviders>
               <AppDataProvider>
-                <div className="w-full h-screen min-h-full overflow-hidden">
+                <div className="w-full h-screen min-h-full overflow-hidden
+                
+                ">
                   {children}
                 </div>
                 <Toaster richColors />

@@ -1,8 +1,11 @@
 import { Route } from "@/types/utils"
 import {
   AccountCircleIcon,
+    BadgeIcon,
+    CalendarIcon,
     HomeIconLaravel,
     InventoryIcon,
+    PeopleIcon,
     UserIcon,
     WalletLaravelIcon,
   } from "@/icons/icons";
@@ -52,12 +55,29 @@ export const routes: Route[] = [
       ],
     },
     {
-      id: 6,
+      id: 10,
       title: "Recurso humano",
-      href: "/dashboard/users",
-      icon: UserIcon,
+      icon: PeopleIcon,
       space: false,
       roles: rolesPermsisssions.access_clients_index,
+      children: [
+        {
+          id: 11,
+          title: "Usuarios",
+          href: "/dashboard/users",
+          icon: UserIcon,
+          space: false,
+          roles: rolesPermsisssions.access_clients_index,
+        },
+        {
+          id: 12,
+          title: "Marcajes",
+          href: "/dashboard/users/marcajes",
+          icon: BadgeIcon,
+          space: false,
+          roles: [1, 2, 3, 4],
+        },
+      ],
     },
     {
       id: 7,
@@ -68,7 +88,7 @@ export const routes: Route[] = [
       roles: [1, 2, 3, 4],
     },
     {
-      id: 6,
+      id: 8,
       title: "QR",
       href: "/dashboard/QR",
       icon: InventoryIcon,
@@ -76,7 +96,7 @@ export const routes: Route[] = [
       roles: [1, 2, 3, 4],
     },
     {
-      id: 7,
+      id: 9,
       title: "Salidas a Campo",
       href: "/dashboard/salidas",
       icon: InventoryIcon,

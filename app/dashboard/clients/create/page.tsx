@@ -7,7 +7,7 @@ import rolesPermissions from "@/utils/roles";
 export default function Clients() {
   const { user } = useSession();
 
-  if (!rolesPermissions.clients_create.includes(user.profile.rol_id)) {
+  if (user && !rolesPermissions.clients_create.includes(user.profile.rol_id)) {
     return <NotAllowed />;
   }
 
