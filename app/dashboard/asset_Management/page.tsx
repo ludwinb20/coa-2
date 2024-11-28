@@ -2,7 +2,7 @@
 import { useSession } from "@/app/session-provider";
 
 import { getAsset } from "@/services/asset";
-import { Asset } from "@/types/models";
+
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import AssetIndex from "@/components/asset/asset-index";

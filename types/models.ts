@@ -49,17 +49,7 @@ export type Category = {
     descripcion: string;
   };
 
-  export type Asset = {
-    id: number;
-    nombre: string;
-    estado: string;
-    precio: number;
-    categoria_id: number;
-    fotografia: string;
-    disponibilidad: boolean;
-    company_id: number;
-    created_at: string;
-};
+
 
 export type Client = {
   id: number;
@@ -94,6 +84,7 @@ export type Departamento = {
   }
 
   export type CampoAssets = {
+    profiles: any;
     id : number;
     campo_id : number;
     asset_id: number;
@@ -109,6 +100,23 @@ export type Departamento = {
       created_at: string;
     estado: boolean;
     usuario_id: UUID;
+    profiles?:{
+    id: UUID;
+    full_name: string;
+    username?: string;
+    created_at: string;
+    updated_at: string;
+    active: boolean;
+    empresa_id: number;
+    rol_id: number;
+    departamento_id: number;
+    roles: Role | null;
+    avatar_url: string;
+    url?: string | null;
+    email?: string;
+    password?: string;
+    departments?: Departamento | null;
+    }
     }
   }
 
@@ -117,6 +125,14 @@ export type Departamento = {
     encargado:string;
     campo_id:number;
     usuario_id:UUID;
+    profiles?:{
+      id: UUID;
+      username: string;
+      full_name: string;
+      avatar_url: string;
+      url?: string | null; 
+    }
+  
   }
 
   export type Campologs = {
@@ -126,4 +142,5 @@ export type Departamento = {
     observaciones: string;
     asset_id : number;
     usuario_id: UUID;
+    fecha:Date;
   }

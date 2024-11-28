@@ -1,4 +1,4 @@
-import { Asset } from "@/types/models";
+
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -29,6 +29,7 @@ import { updateAsset } from "@/services/asset";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import rolesPermissions from "@/utils/roles";
+import { Asset } from "@/types/asset";
 
 const EditAsset = ({ asset }: { asset: Asset }) => {
   const [open, setOpen] = useState<boolean>(false);
