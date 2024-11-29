@@ -9,8 +9,6 @@ import { useQuery } from "@tanstack/react-query";
 import rolesPermissions from "@/utils/roles";
 import { getSalidas } from "@/services/salidas";
 import CamposIndex from "@/components/salidas/salidas-index";
-import CampoList from "@/components/salidas/salidas-carousel";
-
 export default function Campo() {
   const { user } = useSession();
 
