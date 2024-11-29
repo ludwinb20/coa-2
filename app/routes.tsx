@@ -86,14 +86,14 @@ export const routes: Route[] = [
       space: false,
       roles: [1, 2, 3, 4],
     },
-    {
-      id: 8,
-      title: "QR",
-      href: "/dashboard/QR",
-      icon: InventoryIcon,
-      space: false,
-      roles: [1, 2, 3, 4],
-    },
+    //{
+      //id: 8,
+      //title: "QR",
+      //href: "/dashboard/QR",
+      //icon: InventoryIcon,
+      //space: false,
+      //roles: [1, 2, 3, 4],
+    //},
     {
       id: 9,
       title: "Salidas a Campo",

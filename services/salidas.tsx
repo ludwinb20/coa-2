@@ -2,6 +2,7 @@ import { Asset } from "@/types/asset";
 import { Campo, CampoAssets, Campologs, CampoUsuarios } from "@/types/models";
 import { uploadFile } from "@/utils/handle-files";
 import { createClient } from "@/utils/supabase/client";
+import { UUID } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 
 const supabase = createClient();
@@ -71,5 +72,49 @@ export const getCampoLogs = async (campoId: number): Promise<Campologs[]> => {
     }
 
     return data as Campologs[];
+}
+
+export const createCampo = async ({
+    proyecto_id,
+    cliente_id,
+    fecha_inicio,
+    fecha_final,
+    usuario_ids
+}: {
+    proyecto_id: number;
+    cliente_id: number;
+    fecha_inicio: Date;
+    fecha_final: Date;
+    usuario_ids: string[];
+}): Promise<{ campo: Campo | null; success: boolean }> => {
+    // Primera inserción
+    const { data, error } = await supabase.from("campo").insert([
+        {
+            proyecto_id,
+            cliente_id,
+            fecha_inicio,
+            fecha_final
+        },
+    ]).select().single();
+
+    if (error) {
+        console.error("Error creando campo:", error);
+        return { campo: null, success: false };
+    }
+
+    // Segunda inserción para múltiples usuarios
+    const campoUsuariosInsertions = usuario_ids.map(usuario_id => ({
+        campo_id: data.id,
+        usuario_id
+    }));
+
+    const { error: campoUsuariosError } = await supabase.from('campo_usuarios').insert(campoUsuariosInsertions);
+
+    if (campoUsuariosError) {
+        console.error("Error creando campo_usuarios:", campoUsuariosError);
+        return { campo: null, success: false };
+    }
+  
+    return { campo: data, success: true };
 }
 

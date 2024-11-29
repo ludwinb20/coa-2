@@ -120,7 +120,7 @@ export type Departamento = {
     }
   }
 
-  export type CampoUsuarios = {
+  export type CampoUsuarios = {  
     id: number;
     encargado:string;
     campo_id:number;

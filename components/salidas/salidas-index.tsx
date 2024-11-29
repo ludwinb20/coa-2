@@ -27,7 +27,7 @@ const CamposIndex = ({ campos }: Props) => {
             {user && rolesPermissions.clients_create.includes(user?.profile.rol_id) && (
               <Button
                 onClick={() => {
-                  router.push("#");
+                  router.push("/dashboard/salidas/create");
                 }}
                 variant="default"
                 size="sm"

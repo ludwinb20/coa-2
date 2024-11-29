@@ -55,7 +55,7 @@ const ViewUsuarios: React.FC<{ campoId: number }> = ({ campoId }) => {
                                         {usuario.profiles?.full_name ?? 'Usuario sin nombre'}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {/* Additional user info can go here */}
+                                      
                                     </p>
                                 </div>
                             </CardContent>
