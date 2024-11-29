@@ -1,4 +1,4 @@
-import { Departamento, Role, UserProfile } from "@/types/models";
+import { Departamento, Marcajes, Role, UserProfile } from "@/types/models";
 import { uploadFile } from "@/utils/handle-files";
 import { createClient } from "@/utils/supabase/client";
 import { createUser, getUsers as getUsersAdmin, updateUserEmail } from "@/utils/supabase/admin";
@@ -9,7 +9,6 @@ export const getUsers = async ({ empresa_id }: { empresa_id: number | null }) =>
   const { data: profiles, error } = await supabase
     .from("profiles")
     .select("*, departments(name), roles(name)")
-    .eq("empresa_id", empresa_id)
     .eq("active", true);
 
     if (error) {
@@ -245,5 +244,25 @@ export const resetPassowrd = async ({password}:{password: string}) => {
   }catch(error){
     console.log(error)
     return false;
+  }
+}
+
+export const getMarcajes = async (): Promise<Marcajes[]> => {
+  try{
+    const { data, error } = await supabase
+      .from("schedule-checks")
+      .select("*, profiles(*)");
+
+      console.log(data);
+
+    if (error) {
+      console.error("Error fetching marcajes:", error);
+      return [];
+    }
+
+    return data;
+  }catch(error){
+    console.log(error)
+    return [];
   }
 }

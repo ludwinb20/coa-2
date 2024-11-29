@@ -18,7 +18,7 @@ const ClientsIndex = ({ clients }: Props) => {
 
   return (
     <div>
-      <Card>
+      <Card className="rounded-md border">
         <CardHeader>
           <CardTitle>Clientes</CardTitle>
           <div className="flex justify-end items-center mb-2">

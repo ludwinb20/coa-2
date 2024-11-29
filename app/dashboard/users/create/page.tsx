@@ -42,7 +42,7 @@ export default function Users() {
   }
 
   return (
-    <div className="p-6">
+    <div className="">
       <UsersCreate roles={roles} departments={departments} />
     </div>
   );

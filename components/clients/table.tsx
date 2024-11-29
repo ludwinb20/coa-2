@@ -64,7 +64,7 @@ export function DataTableClients<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="text-sm">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -83,9 +83,10 @@ export function DataTableClients<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="h-10" 
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="py-1 text-sm">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -100,7 +101,7 @@ export function DataTableClients<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Sin resultados.
                 </TableCell>
               </TableRow>
             )}

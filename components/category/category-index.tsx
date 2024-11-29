@@ -14,7 +14,7 @@ const CategoryIndex = ({ categorys }: Props) => {
   const router = useRouter();
   return (
     <div>
-    <Card>
+    <Card className="rounded-md border">
       <CardHeader>
         <CardTitle>Categoria</CardTitle>
         <div className="flex justify-end items-center mb-4">

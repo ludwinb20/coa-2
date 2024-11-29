@@ -24,7 +24,7 @@ export default function Users() {
   }
 
   return (
-    <div className="p-6">
+    <div>
       {isLoading ? (
         <div>Cargando usuarios...</div>
       ) : (

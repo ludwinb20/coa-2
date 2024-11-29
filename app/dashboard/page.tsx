@@ -4,7 +4,7 @@ import { DepartmentsList } from "@/components/admin/CreateUserForm";
 export default function DepartmentsPage() {
 
   return (
-      <div className="p-6">
+      <div className="">
         <DepartmentsList />
       </div>
   );

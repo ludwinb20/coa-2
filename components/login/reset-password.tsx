@@ -59,7 +59,7 @@ export const ResetPassword = () => {
   };
 
   return (
-    <Card className="w-full max-w-md bg-card">
+    <Card className="w-full max-w-md bg-card rounded-md border">
       <CardHeader>
         <CardTitle>Reestablecer contraseña</CardTitle>
         <CardDescription>Ingrese su nueva contraseña.</CardDescription>

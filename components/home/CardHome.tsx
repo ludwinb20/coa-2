@@ -7,7 +7,7 @@ import { useHome } from "../../hooks/use-home"
 export const CardHome = () => {
     const {enviarCodigo, codigo, setcodigo} = useHome();
     return(
-        <Card className="bg-secondary text-primary border border-transparent w-1/2">
+        <Card className="bg-secondary text-primary border-transparent w-1/2 rounded-md border">
         <CardHeader>
           <CardTitle>Codigo de seguridad</CardTitle>
           <CardDescription>Por favor introduzca el codigo de seguridad que su proveedor le facilito.</CardDescription>

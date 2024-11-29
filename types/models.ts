@@ -127,3 +127,11 @@ export type Departamento = {
     asset_id : number;
     usuario_id: UUID;
   }
+
+  export type Marcajes = {
+    id: number;
+    in: Date;
+    out: Date;
+    total: number;
+    profile: Profile;
+  }

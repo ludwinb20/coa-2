@@ -69,7 +69,7 @@ const CampoList: React.FC<CampoListProps> = ({ campoid }) => {
         {campoAssets.length > 0 ? (
           campoAssets.map((asset) => (
             <CarouselItem key={asset.id} className="pl-2 md:pl-4 w-full">
-              <Card className="w-full">
+              <Card className="w-full rounded-md border">
                 <CardContent className="flex flex-col aspect-square items-center justify-center p-6">
                   <Image
                     src="/placeholder.svg?height=100&width=100"

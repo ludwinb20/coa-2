@@ -100,7 +100,7 @@ export function DataTableCampo<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Sin resultados.
                 </TableCell>
               </TableRow>
             )}

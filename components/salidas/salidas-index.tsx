@@ -20,11 +20,11 @@ const CamposIndex = ({ campos }: Props) => {
 
   return (
     <div>
-      <Card>
+      <Card className="rounded-md border">
         <CardHeader>
           <CardTitle>Salidas a Campos</CardTitle>
           <div className="flex justify-end items-center mb-2">
-            {rolesPermissions.clients_create.includes(user.profile.rol_id) &&
+            {user && rolesPermissions.clients_create.includes(user?.profile.rol_id) &&
             <Button
               onClick={() => {
                 router.push("#");

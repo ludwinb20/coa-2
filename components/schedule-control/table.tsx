@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -16,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import React from "react";
 
@@ -25,11 +26,13 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
-export function DataTableUsers<TData, TValue>({
+export function DataTableMarcajes<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
 
   const table = useReactTable({
     data,
@@ -44,27 +47,24 @@ export function DataTableUsers<TData, TValue>({
   });
 
   return (
-    <div>
-      <div className="flex items-center pb-4 justify-end">
-        <Input
-          placeholder="Buscar..."
-          value={(table.getState().globalFilter as string) ?? ""}
-          onChange={(event) => table.setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
-      </div>
+    <div className="mt-4">
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="text-sm">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} className="text-sm">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             ))}
           </TableHeader>
@@ -74,18 +74,24 @@ export function DataTableUsers<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="h-10"  // Reduce the height of rows
+                  className="h-10"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-1 text-sm">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   Sin resultados.
                 </TableCell>
               </TableRow>

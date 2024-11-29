@@ -16,16 +16,16 @@ export default function Campo() {
 
   
   const { data: campo, isLoading } = useQuery({
-    queryKey: ["campo", user.id],
+    queryKey: ["campo", user?.id],
     queryFn: () => getSalidas(),
   });
 
-  if (!rolesPermissions.access_clients_index.includes(user.profile.rol_id)) {
+  if (user && !rolesPermissions.access_clients_index.includes(user?.profile.rol_id)) {
     return <NotAllowed />;
   }
 
   return (
-    <div className="p-6">
+    <div className="">
       {isLoading ? (
         <div>Cargando campos...</div>
       ) : (

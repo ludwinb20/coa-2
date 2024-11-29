@@ -123,7 +123,7 @@ const UsersCreate = ({ roles, departments }: Props) => {
   }
 
   return (
-    <Card>
+    <Card className="rounded-md border">
       <CardHeader>
         <CardTitle>Crear Cliente</CardTitle>
       </CardHeader>

@@ -12,7 +12,7 @@ export default function Clients() {
   }
 
   return (
-    <div className="p-6">
+    <div className="">
       <ClientsCreate />
     </div>
   );

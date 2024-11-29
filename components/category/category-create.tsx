@@ -38,7 +38,7 @@ const CategoryCreate = () => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const resultado = await createCategory({
-        company_id: user.empresa.id,
+        company_id: user?.empresa.id ?? 0,
         nombre: values.nombre,
         descripcion: values.descripcion || '',
       });
@@ -57,7 +57,7 @@ const CategoryCreate = () => {
   }
 
   return (
-    <Card>
+    <Card className="rounded-md border">
       <CardHeader>
         <CardTitle>Crear Categoría</CardTitle>
       </CardHeader>

@@ -90,7 +90,7 @@ const ClientsCreate = () => {
   }
 
   return (
-    <Card>
+    <Card className="rounded-md border">
       <CardHeader>
         <CardTitle>Crear Cliente</CardTitle>
       </CardHeader>

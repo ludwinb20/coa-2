@@ -21,7 +21,7 @@ export default function Categorys() {
 
   
   return (
-    <div className="p-6">
+    <div className="">
       {isLoading ? (
         <div>Cargando activos...</div>
       ) : (

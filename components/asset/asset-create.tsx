@@ -111,7 +111,7 @@ const AssetCreate = () => {
   }
 
   return (
-    <Card>
+    <Card className="rounded-md border">
       <CardHeader>
         <CardTitle>Crear Activo</CardTitle>
       </CardHeader>

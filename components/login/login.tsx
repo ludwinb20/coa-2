@@ -57,7 +57,7 @@ export const Login = () => {
   };
 
   return (
-    <Card className="w-full max-w-md bg-card">
+    <Card className="w-full max-w-md bg-card rounded-md border">
       <CardHeader>
         <CardTitle>Inicio de sesión</CardTitle>
         <CardDescription>Ingresa tu correo y contraseña.</CardDescription>

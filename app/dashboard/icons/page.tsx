@@ -7,12 +7,12 @@ import IconsIndex from "@/components/icons";
 export default function Clients() {
   const { user } = useSession();
 
-  if (!rolesPermissions.access_clients_index.includes(user.profile.rol_id)) {
+  if (user && !rolesPermissions.access_clients_index.includes(user.profile.rol_id)) {
     return <NotAllowed />;
   }
 
   return (
-    <div className="p-6">
+    <div className="">
         <IconsIndex />
     </div>
   );

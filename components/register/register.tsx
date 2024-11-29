@@ -41,7 +41,7 @@ export const Register = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-background">
-      <Card className="bg-primary text-secondary border border-transparent w-4/5 max-w-md">
+      <Card className="bg-primary text-secondary rounded-md border border-transparent w-4/5 max-w-md">
         <CardHeader>
           <CardTitle>Registro</CardTitle>
           <CardDescription>Crea una cuenta nueva.</CardDescription>

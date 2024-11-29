@@ -16,14 +16,14 @@ import { useSession } from "@/app/session-provider";
     queryFn: () => getSalidas(),
   });
 
-  if (!rolesPermissions.access_clients_index.includes(user.profile.rol_id)) {
+  if (user && !rolesPermissions.access_clients_index.includes(user?.profile.rol_id)) {
     return <NotAllowed />;
   }
 
   const { id } = ( Props.params);
 
   return (
-    <div className="p-6">
+    <div className="">
       {isLoading ? (
         <div>Cargando campos...</div>
       ) : (
