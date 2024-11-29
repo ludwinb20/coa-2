@@ -98,7 +98,7 @@ const CampoList: React.FC<CampoListProps> = ({ campoid }) => {
                     alt={asset.assets?.nombre || "Asset image"}
                     width={200}
                     height={200}
-                    className="rounded-full mb-4"
+                    className="rounded-full mb-4 bg-gray-200 dark:bg-gray-800"
                   />
                   <span className="text-xl font-semibold">{asset.assets?.nombre || "Sin nombre"}</span>
                   <span className="text-sm text-muted-foreground"> ID: {asset.asset_id}</span>
