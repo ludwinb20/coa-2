@@ -10,9 +10,12 @@ import {
   CarouselNext,
   CarouselPrevious
 } from "../ui/carousel";
-import { Card, CardContent, CardHeader } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Loader2 } from "lucide-react";
 import Image from 'next/image';
+import { getAsset, getAssetById } from "@/services/asset";
+import { useSession } from "@/app/session-provider";
+import { Asset } from "@/types/asset";
 
 interface CampoListProps {
   campoid: number;
@@ -20,8 +23,10 @@ interface CampoListProps {
 
 const CampoList: React.FC<CampoListProps> = ({ campoid }) => {
   const [campoAssets, setCampoAssets] = useState<CampoAssets[]>([]);
+  const [campoUserAssets, setCampoUserAssets] = useState<{ [key: number]: Asset[] }>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useSession();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,7 +34,23 @@ const CampoList: React.FC<CampoListProps> = ({ campoid }) => {
         setIsLoading(true);
         const assets = await getCampoAssets(campoid);
         setCampoAssets(assets);
+        console.log("CampoAssets",assets)
+
+        // Fetch user assets for each asset_id
+        const userAssetsPromises = assets.map(asset => 
+          getAssetById({ asset_id: asset.asset_id })
+        );
+        const userAssetsResults = await Promise.all(userAssetsPromises);
+        
+        // Create a map of asset_id to user assets
+        const userAssetsMap = assets.reduce((acc, asset, index) => {
+          acc[asset.asset_id] = userAssetsResults[index];
+          return acc;
+        }, {} as { [key: number]: Asset[] });
+
+        setCampoUserAssets(userAssetsMap);
         setError(null);
+
       } catch (err) {
         console.error("Error fetching assets:", err);
         setError("Failed to load assets. Please try again.");
@@ -60,26 +81,36 @@ const CampoList: React.FC<CampoListProps> = ({ campoid }) => {
   return (
     <Carousel
       opts={{
-        align: "center",
+        align: "start",
         loop: true,
       }}
-      className="w-full max-w-xs relative"
+      className="w-full max-w-[1800px] relative overflow-hidden"
     >
-      <CarouselContent className="-ml-2 md:-ml-4">
+      <CarouselContent className="flex -ml-2 md:-ml-4">
         {campoAssets.length > 0 ? (
           campoAssets.map((asset) => (
+<<<<<<< HEAD
             <CarouselItem key={asset.id} className="pl-2 md:pl-4 w-full">
               <Card className="w-full rounded-md border">
                 <CardContent className="flex flex-col aspect-square items-center justify-center p-6">
+=======
+            <CarouselItem key={asset.id} className="pl-2 md:pl-4 flex-none w-1/3">
+              <Card className="w-full">
+                <CardTitle className="p-4 text-lg">Assets Usados</CardTitle>
+                <CardContent className="flex flex-col items-center justify-center p-4">
+>>>>>>> 0ba846e5738e5667e143b528306ba32982862770
                   <Image
-                    src="/placeholder.svg?height=100&width=100"
+                    src={campoUserAssets[asset.asset_id]?.[0]?.url || "Sin imagen"}
                     alt={asset.assets?.nombre || "Asset image"}
-                    width={100}
-                    height={100}
+                    width={200}
+                    height={200}
                     className="rounded-full mb-4"
                   />
                   <span className="text-xl font-semibold">{asset.assets?.nombre || "Sin nombre"}</span>
-                  <span className="text-sm text-muted-foreground">Asset ID: {asset.id}</span>
+                  <span className="text-sm text-muted-foreground"> ID: {asset.asset_id}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Asignado a: {asset.profiles?.username || "Sin nombre"}
+                  </span>
                 </CardContent>
               </Card>
             </CarouselItem>
@@ -90,12 +121,13 @@ const CampoList: React.FC<CampoListProps> = ({ campoid }) => {
           </CarouselItem>
         )}
       </CarouselContent>
-      <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2" />
-      <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2" />
+      <CarouselPrevious className="absolute -left-12 top-1/2 transform -translate-y-1/2" />
+      <CarouselNext className="absolute -right-12 top-1/2 transform -translate-y-1/2" />
     </Carousel>
   )
 }
 
 export default CampoList
+
 
 

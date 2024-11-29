@@ -1,8 +1,9 @@
 import { Campo, CampoAssets, Campologs, CampoUsuarios } from "@/types/models";
 import { uploadFile } from "@/utils/handle-files";
-import { createClient, supabase } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 
+const supabase = createClient();
 
 export const getCampoAssets = async (campoId: number): Promise<CampoAssets[]> => {
     try {
@@ -19,6 +20,10 @@ export const getCampoAssets = async (campoId: number): Promise<CampoAssets[]> =>
                   company_id,
                   created_at,
                   estado
+                ),
+                profiles:usuario_id (
+                  id,
+                  username
                 )
             `)
             .eq('campo_id', campoId);

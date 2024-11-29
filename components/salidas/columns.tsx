@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../ui/button";
 import { EditIcon } from "@/icons/icons";
 import { DeleteIcon, XIcon } from "lucide-react";
-import { Client } from "@/types/clients";
+
 import { useState } from "react";
 import { Campo } from "@/types/models";
 import CampoList from "./salidas-carousel";

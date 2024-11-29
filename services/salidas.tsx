@@ -29,14 +29,33 @@ export const getSalidas = async (): Promise<Campo[]> => {
 export const getCampoUsuario = async (campoId: number): Promise<CampoUsuarios[]> => {
     const { data, error } = await supabase
         .from('campo_usuarios')
-        .select('*')
+        .select('*,profiles:usuario_id(id,username,avatar_url,full_name)')
         .eq('campo_id', campoId);
+        
+    const usersWithUrls = await Promise.all(
+        (data || []).map(async (profile: CampoUsuarios) => {
+            if (!profile.profiles?.avatar_url) {
+                return { ...profile, url: null };
+            }
+
+            const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+                .from("avatars")
+                .createSignedUrl(`users/${profile.profiles.avatar_url}`, 3600);
+
+            if (signedUrlError || !signedUrlData) {
+                console.error(`Error creating signed URL for ${profile.profiles.avatar_url}:`, signedUrlError?.message);
+                return { ...profile, url: null };
+            }
+
+            return { ...profile, url: signedUrlData.signedUrl };
+        })
+    );
 
     if (error) {
         throw new Error(error.message);
     }
 
-    return data as CampoUsuarios[];
+    return usersWithUrls;
 }
 
 export const getCampoLogs = async (campoId: number): Promise<Campologs[]> => {
@@ -45,6 +64,8 @@ export const getCampoLogs = async (campoId: number): Promise<Campologs[]> => {
         .select('*')
         .eq('campo_id', campoId);
 
+        
+
     if (error) {
         throw new Error(error.message);
     }
@@ -52,59 +73,3 @@ export const getCampoLogs = async (campoId: number): Promise<Campologs[]> => {
     return data as Campologs[];
 }
 
-export const getAssetById = async ({
-    campo_id,
-  }: {
-    campo_id: number | null;
-  }): Promise<Asset[]> => {
-  
-    
-  
-    try {
-      const { data: assets, error } = await supabase
-        .from("asset")
-        .select(`
-          *,
-          category:categoria_id (
-            id,
-            nombre
-          )
-        `)
-        .eq("id", campo_id)
-        .eq("active", true)
-        ;
-  
-        if (!assets || assets.length === 0) {
-          console.info("No se encontraron clientes.");
-          return [];
-        }
-    
-  
-        const assetsWithFiles = await Promise.all(
-          assets.map(async (asset: Asset) => {
-            if (!asset.file) {
-              return { ...asset, url: null };
-            }
-    
-            const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-              .from("assets")
-              .createSignedUrl(`assets/${asset.file}`, 3600);
-    
-            if (signedUrlError || !signedUrlData) {
-              console.error(`Error creando URL firmada para el archivo ${asset.file}:`, signedUrlError?.message);
-              return { ...asset, url: null };
-            }
-    
-            return { ...asset, url: signedUrlData.signedUrl };
-          })
-        );
-  
-  
-  
-      if (error) throw error;
-      return assetsWithFiles || [];
-    } catch (error) {
-      console.error("Error fetching Assets:", error);
-      return [];
-    }
-  };

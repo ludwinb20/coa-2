@@ -165,3 +165,56 @@ export const deleteAsset = async ({
 
   return { asset: data, success: true };
 };
+
+export const getAssetById = async ({
+  asset_id,
+}: {
+  asset_id: number | null;
+}): Promise<Asset[]> => {
+
+  
+
+  try {
+    const { data: assets, error } = await supabase
+      .from("asset")
+      .select(`
+        *
+      `)
+      .eq("id", asset_id)
+      .eq("active", true)
+      ;
+
+      if (!assets || assets.length === 0) {
+        console.info("No se encontraron clientes.");
+        return [];
+      }
+  
+
+      const assetsWithFiles = await Promise.all(
+        assets.map(async (asset: Asset) => {
+          if (!asset.file) {
+            return { ...asset, url: null };
+          }
+  
+          const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+            .from("assets")
+            .createSignedUrl(`assets/${asset.file}`, 3600);
+  
+          if (signedUrlError || !signedUrlData) {
+            console.error(`Error creando URL firmada para el archivo ${asset.file}:`, signedUrlError?.message);
+            return { ...asset, url: null };
+          }
+  
+          return { ...asset, url: signedUrlData.signedUrl };
+        })
+      );
+
+
+
+    if (error) throw error;
+    return assetsWithFiles || [];
+  } catch (error) {
+    console.error("Error fetching Assets:", error);
+    return [];
+  }
+};

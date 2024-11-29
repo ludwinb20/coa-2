@@ -14,7 +14,10 @@ import CampoList from "@/components/salidas/salidas-carousel";
 export default function Campo() {
   const { user } = useSession();
 
-  
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
   const { data: campo, isLoading } = useQuery({
     queryKey: ["campo", user?.id],
     queryFn: () => getSalidas(),
@@ -29,8 +32,10 @@ export default function Campo() {
       {isLoading ? (
         <div>Cargando campos...</div>
       ) : (
-        <CamposIndex campos={campo ?? []} />
-       //<CampoList campoid={1} />
+        <>
+          <CamposIndex campos={campo ?? []} />
+         
+        </>
       )}
     </div>
   );

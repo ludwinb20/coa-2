@@ -24,7 +24,11 @@ const CamposIndex = ({ campos }: Props) => {
         <CardHeader>
           <CardTitle>Salidas a Campos</CardTitle>
           <div className="flex justify-end items-center mb-2">
+<<<<<<< HEAD
             {user && rolesPermissions.clients_create.includes(user?.profile.rol_id) &&
+=======
+            {user && rolesPermissions.clients_create.includes(user.profile.rol_id) &&
+>>>>>>> 0ba846e5738e5667e143b528306ba32982862770
             <Button
               onClick={() => {
                 router.push("#");
