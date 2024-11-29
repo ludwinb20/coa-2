@@ -89,16 +89,10 @@ const CampoList: React.FC<CampoListProps> = ({ campoid }) => {
       <CarouselContent className="flex -ml-2 md:-ml-4">
         {campoAssets.length > 0 ? (
           campoAssets.map((asset) => (
-<<<<<<< HEAD
-            <CarouselItem key={asset.id} className="pl-2 md:pl-4 w-full">
-              <Card className="w-full rounded-md border">
-                <CardContent className="flex flex-col aspect-square items-center justify-center p-6">
-=======
             <CarouselItem key={asset.id} className="pl-2 md:pl-4 flex-none w-1/3">
               <Card className="w-full">
                 <CardTitle className="p-4 text-lg">Assets Usados</CardTitle>
                 <CardContent className="flex flex-col items-center justify-center p-4">
->>>>>>> 0ba846e5738e5667e143b528306ba32982862770
                   <Image
                     src={campoUserAssets[asset.asset_id]?.[0]?.url || "Sin imagen"}
                     alt={asset.assets?.nombre || "Asset image"}
