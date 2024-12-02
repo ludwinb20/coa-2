@@ -27,6 +27,14 @@ import { getUsers } from '@/services/users';
 import { UserProfile } from "@/types/models";
 import MultiSelectUsuarios from './multi-select';
 import { Asset } from "@/types/asset";
+import { getAsset } from "@/services/asset";
+import { ScrollArea } from '@radix-ui/react-scroll-area';
+import ScrollAssets from './scroll-assets';
+
+interface AssetAssignment {
+  asset_id: string;
+  usuario_id: string;
+}
 
 const SalidasCreate = () => {
   const [saving, setSaving] = useState<boolean>(false);
@@ -34,17 +42,19 @@ const SalidasCreate = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const[assets,setAssets]=useState<Asset[]>([])
   const { user } = useSession();
+  const [assetAssignments, setAssetAssignments] = useState<AssetAssignment[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [clientsData, usersData] = await Promise.all([
+        const [clientsData, usersData, assetsData] = await Promise.all([
           getClients({ empresa_id: user?.empresa.id ?? null }),
           getUsers({ empresa_id: user?.empresa.id ?? null }),
-         
+          getAsset({ empresa_id: user?.empresa.id ?? null }),
         ]);
         setClients(clientsData);
         setUsers(usersData);
+        setAssets(assetsData);
       } catch (error) {
         toast.error("Error al cargar los datos");
       }
@@ -63,11 +73,14 @@ const SalidasCreate = () => {
       required_error: "Al menos un usuario es requerido",
     }).min(1, "Seleccione al menos un usuario"),
     fecha_inicio: z.date({
-      required_error: "La fecha de inicio es requerida",
+      required_error: "La fecha de inicio es necesaria ",
     }),
     fecha_final: z.date({
-      required_error: "La fecha final es requerida",
+      required_error: "La fecha final es necesaria",
     }),
+    assets_ids: z.array(z.string(), {
+      required_error: "Al menos un asset es requerido",
+    }).min(1, "Seleccione al menos un asset"),
   }).refine((data) => data.fecha_inicio < data.fecha_final, {
     message: "La fecha final debe ser posterior a la fecha de inicio",
     path: ["fecha_final"],
@@ -81,8 +94,13 @@ const SalidasCreate = () => {
       usuarios_ids: [],
       fecha_inicio: new Date(),
       fecha_final: new Date(),
+      assets_ids: [],
     },
   });
+
+  const handleAssetAssignment = (assignments: AssetAssignment[]) => {
+    setAssetAssignments(assignments);
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setSaving(true);
@@ -93,7 +111,8 @@ const SalidasCreate = () => {
       
       await createCampo({
         ...values,
-        usuario_ids: values.usuarios_ids.map(String)
+        usuario_ids: values.usuarios_ids.map(String),
+        asset_assignments: assetAssignments
       });
       toast.success("Salida a campo creada exitosamente");
     } catch (error) {
@@ -177,6 +196,8 @@ const SalidasCreate = () => {
                   </FormItem>
                 )}
               />
+
+             
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -221,6 +242,27 @@ const SalidasCreate = () => {
               />
             </div>
 
+            <FormField
+              control={form.control}
+              name="assets_ids"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Activos</FormLabel>
+                  <ScrollAssets 
+                    empresa_id={user?.empresa.id ?? null}
+                    onChange={field.onChange}
+                    value={field.value}
+                    selectedUsers={users.filter(user => 
+                      form.getValues().usuarios_ids.includes(user.id.toString())
+                    )}
+                    onAssignmentChange={handleAssetAssignment}
+                  />
+                  <FormDescription>Seleccione los activos para la salida a campo.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button type="submit" disabled={saving}>
               {saving ? <ReloadIcon className="animate-spin" /> : "Crear"}
             </Button>
@@ -232,7 +274,5 @@ const SalidasCreate = () => {
 };
 
 export default SalidasCreate;
-function getAssets(arg0: { empresa_id: number | null; }): any {
-    throw new Error("Function not implemented.");
-}
+
 

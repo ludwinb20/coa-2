@@ -49,7 +49,7 @@ export const routes: Route[] = [
           href: "/dashboard/category",
           icon: InventoryIcon,
           space: false,
-          roles: [1, 2, 3, 4],
+          roles: [1,2,6],
         },
       ],
     },

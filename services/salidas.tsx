@@ -74,20 +74,27 @@ export const getCampoLogs = async (campoId: number): Promise<Campologs[]> => {
     return data as Campologs[];
 }
 
+interface AssetAssignment {
+  asset_id: string;
+  usuario_id: string;
+}
+
 export const createCampo = async ({
     proyecto_id,
     cliente_id,
     fecha_inicio,
     fecha_final,
-    usuario_ids
+    usuario_ids,
+    asset_assignments,
 }: {
     proyecto_id: number;
     cliente_id: number;
     fecha_inicio: Date;
     fecha_final: Date;
     usuario_ids: string[];
+    asset_assignments: AssetAssignment[];
 }): Promise<{ campo: Campo | null; success: boolean }> => {
-    // Primera inserción
+    // Primera inserción - campo
     const { data, error } = await supabase.from("campo").insert([
         {
             proyecto_id,
@@ -102,19 +109,37 @@ export const createCampo = async ({
         return { campo: null, success: false };
     }
 
-    // Segunda inserción para múltiples usuarios
+    // Segunda inserción - campo_usuarios
     const campoUsuariosInsertions = usuario_ids.map(usuario_id => ({
         campo_id: data.id,
         usuario_id
     }));
 
-    const { error: campoUsuariosError } = await supabase.from('campo_usuarios').insert(campoUsuariosInsertions);
+    const { error: campoUsuariosError } = await supabase
+        .from('campo_usuarios')
+        .insert(campoUsuariosInsertions);
 
     if (campoUsuariosError) {
         console.error("Error creando campo_usuarios:", campoUsuariosError);
         return { campo: null, success: false };
     }
-  
+
+    // Tercera inserción - campo_assets
+    const campoAssetsInsertions = asset_assignments.map(assignment => ({
+        campo_id: data.id,
+        asset_id: assignment.asset_id,
+        usuario_id: assignment.usuario_id
+    }));
+
+    const { error: campoAssetsError } = await supabase
+        .from('campo_assets')
+        .insert(campoAssetsInsertions);
+
+    if (campoAssetsError) {
+        console.error("Error creando campo_assets:", campoAssetsError);
+        return { campo: null, success: false };
+    }
+
     return { campo: data, success: true };
 }
 

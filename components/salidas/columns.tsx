@@ -11,10 +11,7 @@ import CampoList from "./salidas-carousel";
 import { useRouter } from "next/navigation";
 import SimpleButtonRedirect from "./redirect";
 
-const HandleView = ({row}:{row: Campo}) => {
-  const [campo, setAsset] = useState<Campo>(row);
-  return <CampoList campoid={campo.id} />; // Usa campo.id en lugar de campo
-};
+
 export const columnsCampo: ColumnDef<Campo>[] = [
    {
      accessorKey: "proyecto_id",
