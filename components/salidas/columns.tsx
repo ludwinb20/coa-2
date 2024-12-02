@@ -10,6 +10,23 @@ import { Campo } from "@/types/models";
 import CampoList from "./salidas-carousel";
 import { useRouter } from "next/navigation";
 import SimpleButtonRedirect from "./redirect";
+import EditAsset from "../asset/asset-edit";
+import AcceptCampo from "./accept-campo";
+import RejectCampo from "./reject-campo";
+import CompleteCampo from "./complete-campo";
+
+const HandleAccept = ({row}:{row: Campo}) => {
+  
+
+  return <AcceptCampo id={row.id} />;
+};
+
+const HandleReject = ({row}:{row: Campo}) => {
+  const [asset, setAsset] = useState<Campo>(row);
+
+  return <RejectCampo id={row.id} />;
+};
+
 
 
 export const columnsCampo: ColumnDef<Campo>[] = [
@@ -69,9 +86,33 @@ export const columnsCampo: ColumnDef<Campo>[] = [
 
   },
   {
+    accessorKey: "estado",
+    header: "Estado",
+    cell: ({ row }) => {
+      return <p>{row.original.estado ?? "no"}</p>;
+    },
+
+  },
+  {
     accessorKey: "actions",
     header: () => (
       <div className="flex justify-center items-center">Acciones</div>
+    ),
+    cell: ({ row }) => {
+      const router = useRouter();
+      return (
+        <div className="flex justify-center items-center gap-x-2">
+     <HandleAccept row={row.original}/>
+     <HandleReject row={row.original}/>
+   
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "ver",
+    header: () => (
+      <div className="flex justify-center items-center">Ver</div>
     ),
     cell: ({ row }) => {
       const router = useRouter();
@@ -82,4 +123,5 @@ export const columnsCampo: ColumnDef<Campo>[] = [
       );
     },
   },
+  
 ];

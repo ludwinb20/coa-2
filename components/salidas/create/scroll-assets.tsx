@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserProfile } from "@/types/models";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface AssetAssignment {
   asset_id: string;
@@ -30,6 +32,7 @@ const ScrollAssets = ({ empresa_id, onChange, value = [], selectedUsers, onAssig
   const [assets, setAssets] = useState<Asset[]>([]);
   const [selectedAssets, setSelectedAssets] = useState<string[]>(value);
   const [assetSelections, setAssetSelections] = useState<AssetSelection[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchAssets = async () => {
@@ -41,6 +44,10 @@ const ScrollAssets = ({ empresa_id, onChange, value = [], selectedUsers, onAssig
       fetchAssets();
     }
   }, [empresa_id]);
+
+  const filteredAssets = assets.filter(asset => 
+    asset.nombre.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleCheckboxChange = (assetId: string, checked: boolean) => {
     let newSelectedAssets: string[];
@@ -60,18 +67,33 @@ const ScrollAssets = ({ empresa_id, onChange, value = [], selectedUsers, onAssig
       selection.id === assetId ? { ...selection, assignedUserId: userId } : selection
     );
     setAssetSelections(newSelections);
-    onAssignmentChange?.([{ asset_id: assetId, usuario_id: userId }]);
+    onAssignmentChange?.(
+      newSelections.map(selection => ({
+        asset_id: selection.id,
+        usuario_id: selection.assignedUserId
+      }))
+    );
   };
 
   return (
     <Card className="mt-4 border rounded-md">
       <CardHeader>
         <CardTitle>Lista de Activos</CardTitle>
+        <div className="flex items-center space-x-2 mt-2">
+          <Search className="w-4 h-4 text-gray-500" />
+          <Input
+            type="text"
+            placeholder="Buscar activos..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8"
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[200px] w-full rounded-md border p-4">
           <div className="space-y-4">
-            {assets.map((asset) => (
+            {filteredAssets.map((asset) => (
               <div key={asset.id} className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox

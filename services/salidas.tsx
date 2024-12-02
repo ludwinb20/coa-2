@@ -143,3 +143,46 @@ export const createCampo = async ({
     return { campo: data, success: true };
 }
 
+export const acceptCampo = async (id: number): Promise<{ campo: Campo | null; success: boolean }> => {
+    const { data, error } = await supabase.from('campo').update({ estado: 'Aceptado' }).eq('id', id);
+    
+    if (error) {
+        console.error("Error aceptando campo:", error);
+        return { campo: null, success: false };
+    }
+
+    return { campo: data, success: true };
+}
+
+export const rejectCampo = async (id: number ,motivo: string): Promise<{ campo: Campo | null; success: boolean }> => {
+    const { data, error } = await supabase.from('campo').update({ estado: 'rechazado', observacion: motivo }).eq('id', id);
+
+    if (error) {
+        console.error("Error rechazando campo:", error);
+        return { campo: null, success: false };
+    }
+
+    return { campo: data, success: true };
+}
+
+export const completeCampo = async (id: number): Promise<{ campo: Campo | null; success: boolean }> => {
+    const { data, error } = await supabase.from('campo').update({ estado: 'Completado' }).eq('id', id);
+
+    if (error) {
+        console.error("Error completando campo:", error);
+        return { campo: null, success: false };
+    }
+
+    return { campo: data, success: true };
+}
+
+export const newLog = async (id: number, evento: string,asset_id: number,usuario_id: UUID): Promise<{ campo: Campologs | null; success: boolean }> => {
+    const { data, error } = await supabase.from('campo_logs').insert({ campo_id: id, evento,asset_id,usuario_id });
+
+    if (error) {
+        console.error("Error creando log:", error);
+        return { campo: null, success: false };
+    }
+
+    return { campo: data, success: true };
+}

@@ -74,6 +74,7 @@ export type Departamento = {
     cliente_id : number;
     fecha_inicio: Date;
     fecha_final: Date;
+    estado: string;
     clients?:{
       id: number;
     name: string;
@@ -88,6 +89,7 @@ export type Departamento = {
     id : number;
     campo_id : number;
     asset_id: number;
+    estado: string;
     assets?:{
       id: number;
       nombre: string;
@@ -98,8 +100,7 @@ export type Departamento = {
       disponibilidad: boolean;
       company_id: number;
       created_at: string;
-    estado: boolean;
-    usuario_id: UUID;
+        usuario_id: UUID;
     profiles?:{
     id: UUID;
     full_name: string;
