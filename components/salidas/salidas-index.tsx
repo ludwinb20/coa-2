@@ -16,7 +16,7 @@ type Props = {
 
 const CamposIndex = ({ campos }: Props) => {
   const router = useRouter();
-  const {user} = useSession();
+  const { user } = useSession();
 
   return (
     <div>
@@ -24,24 +24,21 @@ const CamposIndex = ({ campos }: Props) => {
         <CardHeader>
           <CardTitle>Salidas a Campos</CardTitle>
           <div className="flex justify-end items-center mb-2">
-            {user && rolesPermissions.clients_create.includes(user.profile.rol_id) &&
-            <Button
-              onClick={() => {
-                router.push("#");
-              }}
-              variant="default"
-              size="sm"
-            >
-              Agregar Solicitud de Salida a campo
-            </Button>
-            }
+            {user && rolesPermissions.clients_create.includes(user?.profile.rol_id) && (
+              <Button
+                onClick={() => {
+                  router.push("/dashboard/salidas/create");
+                }}
+                variant="default"
+                size="sm"
+              >
+                Agregar Solicitud de Salida a campo
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
-          <DataTableCampo
-            columns={columnsCampo}
-            data={campos}
-          />
+          <DataTableCampo columns={columnsCampo} data={campos} />
         </CardContent>
       </Card>
     </div>

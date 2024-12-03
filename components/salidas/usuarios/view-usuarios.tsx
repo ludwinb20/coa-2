@@ -33,7 +33,7 @@ const ViewUsuarios: React.FC<{ campoId: number }> = ({ campoId }) => {
     return (
         <div className="w-full max-w-2xl">
             <ScrollArea className="h-[320px] w-full rounded-md border">
-                <CardTitle className="p-4 sticky top-0 bg-background z-10">Usuarios Encargados</CardTitle>
+                <CardTitle className="p-4 sticky top-0 bg-background z-10">Usuarios Asignados</CardTitle>
                 <div className="space-y-2 p-2">
                     {usuarios.map((usuario) => (
                         <Card 
@@ -55,7 +55,7 @@ const ViewUsuarios: React.FC<{ campoId: number }> = ({ campoId }) => {
                                         {usuario.profiles?.full_name ?? 'Usuario sin nombre'}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {/* Additional user info can go here */}
+                                      
                                     </p>
                                 </div>
                             </CardContent>

@@ -74,6 +74,7 @@ export type Departamento = {
     cliente_id : number;
     fecha_inicio: Date;
     fecha_final: Date;
+    estado: string;
     clients?:{
       id: number;
     name: string;
@@ -88,6 +89,7 @@ export type Departamento = {
     id : number;
     campo_id : number;
     asset_id: number;
+    estado: string;
     assets?:{
       id: number;
       nombre: string;
@@ -98,10 +100,9 @@ export type Departamento = {
       disponibilidad: boolean;
       company_id: number;
       created_at: string;
-    estado: boolean;
-    usuario_id: UUID;
+        usuario_id: string;
     profiles?:{
-    id: UUID;
+    id: string;
     full_name: string;
     username?: string;
     created_at: string;
@@ -120,13 +121,13 @@ export type Departamento = {
     }
   }
 
-  export type CampoUsuarios = {
+  export type CampoUsuarios = {  
     id: number;
     encargado:string;
     campo_id:number;
-    usuario_id:UUID;
+    usuario_id:string;
     profiles?:{
-      id: UUID;
+      id: string;
       username: string;
       full_name: string;
       avatar_url: string;
@@ -141,7 +142,7 @@ export type Departamento = {
     evento: string;
     observaciones: string;
     asset_id : number;
-    usuario_id: UUID;
+    usuario_id: string;
     fecha:Date;
   }
 
@@ -168,3 +169,20 @@ export type scheduleCheck = {
   out: Date;
   total: number;
 };
+  export type Incidencia = {
+    id: number;
+    campo_id: number;
+    observacion: string;
+    file: string | null;
+  }
+
+  export type Event = {
+    id: number;
+    client_id: number;
+    fecha_inicio: Date;
+    fecha_final: Date;
+    categoria_id: string;
+    encargados: string;
+    creador_evento: number;
+  }
+

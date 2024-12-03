@@ -9,8 +9,17 @@ import { useSession } from "@/app/session-provider";
 import CamposIndex from "@/components/salidas/salidas-index";
 import CamposLogsIndex from "@/components/salidas/logs/logs-index";
 import ViewUsuarios from "@/components/salidas/usuarios/view-usuarios";
+import { use } from 'react';
 
- function Campo(Props: any) {
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
+export default function Page(Props: Props) {
+  const params = use(Props.params);
+  const { id } = params;
+  const numericId = parseInt(id);
+
   const { user } = useSession();
 
   if (!user) {
@@ -26,25 +35,23 @@ import ViewUsuarios from "@/components/salidas/usuarios/view-usuarios";
     return <NotAllowed />;
   }
 
-  const { id } = ( Props.params);
-
   const { data: campologs, isLoading: isLoadingLogs } = useQuery({
     queryKey: ["campologs", user],
-    queryFn: () => getCampoLogs(id),
+    queryFn: () => getCampoLogs(numericId),
   });
 
   return (
-    <div className="">
+    <div className="pr-8 pl-8 pt-8">
       {isLoading ? (
         <div>Cargando campos...</div>
       ) : (
         <>
           <div className="flex justify-between gap-8">
             <div className="flex-1">
-              <CampoList campoid={id} />
+              <CampoList campoid={numericId} />
             </div>
             <div className="flex-1 ml-20">
-              <ViewUsuarios campoId={id} />
+              <ViewUsuarios campoId={numericId} />
             </div>
           </div>
           <div className="mb-4" />
@@ -54,5 +61,3 @@ import ViewUsuarios from "@/components/salidas/usuarios/view-usuarios";
     </div>
   );
 }
-
-export default Campo;
