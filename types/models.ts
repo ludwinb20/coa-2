@@ -178,6 +178,7 @@ export type scheduleCheck = {
 
   export type Event = {
     id: number;
+    nombre: string;
     client_id: number;
     fecha_inicio: Date;
     fecha_final: Date;

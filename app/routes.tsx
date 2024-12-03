@@ -102,5 +102,13 @@ export const routes: Route[] = [
       space: false,
       roles: [1, 2, 3, 4],
     },
+    {
+      id: 13,
+      title: "Eventos",
+      href: "/dashboard/events",
+      icon: InventoryIcon,
+      space: false,
+      roles: [1, 2, 3, 4],
+    },
     
 ]
