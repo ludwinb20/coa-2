@@ -43,7 +43,8 @@ const UsersCreate = ({ roles, departments }: Props) => {
   const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  
   const formSchema = z.object({
     email: z
       .string({
@@ -62,7 +63,7 @@ const UsersCreate = ({ roles, departments }: Props) => {
         "La contraseña debe incluir al menos un carácter especial (@$!%*?&)"
       ),
     nombre: z
-      .string({
+    .string({
         required_error: "El nombre es requerido",
         invalid_type_error: "El nombre debe ser un texto",
       })
@@ -151,8 +152,6 @@ const UsersCreate = ({ roles, departments }: Props) => {
                 control={form.control}
                 name="password"
                 render={({ field }) => {
-                  const [showPassword, setShowPassword] = useState(false);
-
                   return (
                     <FormItem>
                       <FormLabel>Contraseña</FormLabel>

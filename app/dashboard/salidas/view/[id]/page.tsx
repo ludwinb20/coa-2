@@ -22,23 +22,22 @@ export default function Page(Props: Props) {
 
   const { user } = useSession();
 
-  if (!user) {
-    return <div>Loading user session...</div>;
-  }
-
   const { data: campo, isLoading } = useQuery({
     queryKey: ["campo", user],
     queryFn: () => getSalidas(),
   });
 
-  if (user && !rolesPermissions.access_clients_index.includes(user?.profile.rol_id)) {
-    return <NotAllowed />;
-  }
-
   const { data: campologs, isLoading: isLoadingLogs } = useQuery({
     queryKey: ["campologs", user],
     queryFn: () => getCampoLogs(numericId),
   });
+  if (!user) {
+    return <div>Loading user session...</div>;
+  }
+
+  if (user && !rolesPermissions.access_clients_index.includes(user?.profile.rol_id)) {
+    return <NotAllowed />;
+  }
 
   return (
     <div className="pr-8 pl-8 pt-8">

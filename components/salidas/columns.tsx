@@ -16,8 +16,6 @@ import RejectCampo from "./reject-campo";
 import CompleteCampo from "./complete-campo";
 
 const HandleAccept = ({row}:{row: Campo}) => {
-  
-
   return <AcceptCampo id={row.id} />;
 };
 
@@ -99,7 +97,6 @@ export const columnsCampo: ColumnDef<Campo>[] = [
       <div className="flex justify-center items-center">Acciones</div>
     ),
     cell: ({ row }) => {
-      const router = useRouter();
       return (
         <div className="flex justify-center items-center gap-x-2">
      <HandleAccept row={row.original}/>
@@ -115,7 +112,6 @@ export const columnsCampo: ColumnDef<Campo>[] = [
       <div className="flex justify-center items-center">Ver</div>
     ),
     cell: ({ row }) => {
-      const router = useRouter();
       return (
         <div className="flex justify-center items-center gap-x-2">
         <SimpleButtonRedirect id={row.original.id} />
