@@ -152,3 +152,19 @@ export type Departamento = {
     total: number;
     profile: Profile;
   }
+
+export type Payroll = {
+    id: string;
+    created_at: Date;
+    start: Date;
+    end: Date;
+  };
+
+export type scheduleCheck = {
+  id: string;
+  payroll_id: string;
+  user_id: string;
+  in: Date;
+  out: Date;
+  total: number;
+};

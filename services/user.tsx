@@ -3,12 +3,13 @@ import { createClient } from "@/utils/supabase/client";
 interface LoginCredentials {
   email: string;
   password: string;
+  noReload?: boolean;
 }
 
 export const login = async (credentials: LoginCredentials) => {
   try {
     const supabase = createClient();
-    const { email, password } = credentials;
+    const { email, password, noReload } = credentials;
     const { error, data: authData } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -18,7 +19,7 @@ export const login = async (credentials: LoginCredentials) => {
       throw new Error("Error al iniciar sesión: " + error.message);
     }
 
-    if (authData?.user) {
+    if (authData?.user || !noReload) {
       window.location.reload();
     }
   } catch (err) {

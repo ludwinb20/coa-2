@@ -6,3 +6,10 @@ export type UserFront = {
  empresa: Empresa;
  profile: UserProfile;
 }
+
+export type PayloadScan = {
+    id: string;
+    email: string;
+    password: string;
+    iat: number;
+}
