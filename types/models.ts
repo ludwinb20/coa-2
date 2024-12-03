@@ -100,9 +100,9 @@ export type Departamento = {
       disponibilidad: boolean;
       company_id: number;
       created_at: string;
-        usuario_id: UUID;
+        usuario_id: string;
     profiles?:{
-    id: UUID;
+    id: string;
     full_name: string;
     username?: string;
     created_at: string;
@@ -125,9 +125,9 @@ export type Departamento = {
     id: number;
     encargado:string;
     campo_id:number;
-    usuario_id:UUID;
+    usuario_id:string;
     profiles?:{
-      id: UUID;
+      id: string;
       username: string;
       full_name: string;
       avatar_url: string;
@@ -142,7 +142,7 @@ export type Departamento = {
     evento: string;
     observaciones: string;
     asset_id : number;
-    usuario_id: UUID;
+    usuario_id: string;
     fecha:Date;
   }
 
@@ -153,3 +153,21 @@ export type Departamento = {
     total: number;
     profile: Profile;
   }
+
+  export type Incidencia = {
+    id: number;
+    campo_id: number;
+    observacion: string;
+    file: string | null;
+  }
+
+  export type Event = {
+    id: number;
+    client_id: number;
+    fecha_inicio: Date;
+    fecha_final: Date;
+    categoria_id: string;
+    encargados: string;
+    creador_evento: number;
+  }
+

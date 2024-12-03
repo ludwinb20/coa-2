@@ -1,5 +1,5 @@
 import { Asset } from "@/types/asset";
-import { Campo, CampoAssets, Campologs, CampoUsuarios } from "@/types/models";
+import { Campo, CampoAssets, Campologs, CampoUsuarios, Incidencia } from "@/types/models";
 import { uploadFile } from "@/utils/handle-files";
 import { createClient } from "@/utils/supabase/client";
 import { UUID } from "crypto";
@@ -176,8 +176,10 @@ export const completeCampo = async (id: number): Promise<{ campo: Campo | null; 
     return { campo: data, success: true };
 }
 
-export const newLog = async (id: number, evento: string,asset_id: number,usuario_id: UUID): Promise<{ campo: Campologs | null; success: boolean }> => {
-    const { data, error } = await supabase.from('campo_logs').insert({ campo_id: id, evento,asset_id,usuario_id });
+export const newLog = async (id: number, evento: string,asset_id: number,usuario_id: UUID,observaciones: string): Promise<{ campo: Campologs | null; success: boolean }> => {
+    const { data, error } = await supabase.from('campo_logs').insert({ campo_id: id, evento,asset_id,usuario_id,observaciones });
+
+    const { data: assetData, error: assetError } = await supabase.from('campo_assets').update({ estado: 'Entregado' }).eq('id', asset_id);
 
     if (error) {
         console.error("Error creando log:", error);
@@ -186,3 +188,41 @@ export const newLog = async (id: number, evento: string,asset_id: number,usuario
 
     return { campo: data, success: true };
 }
+
+
+export const createIncidencia = async ({
+    campo_id,
+    asset_id,
+    file
+  }: {
+    campo_id: number;
+    asset_id: number;
+    file?: File;
+  }): Promise<{ incidencia: Incidencia | null; success: boolean }> => {
+    console.log({ campo_id, asset_id });
+    
+    let uploadedFile: string | null = null;
+    if (file) {
+      const result = await uploadFile({ 
+        bucket: "incidencias", 
+        url: "incidencias", 
+        file: file 
+      });
+      if (result.success) uploadedFile = result.data;
+    }
+  
+    const { data, error } = await supabase.from("campo_file_observaciones").insert([
+      {
+        campo_id: campo_id,
+        asset_id: asset_id,
+        file: uploadedFile,
+      },
+    ]).select().single();
+  
+    if (error) {
+      console.log("Error creando incidencia:", error);
+      return { incidencia: null, success: false };
+    }
+  
+    return { incidencia: data, success: true };
+  };
