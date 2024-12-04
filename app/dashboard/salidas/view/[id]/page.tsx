@@ -9,14 +9,12 @@ import { useSession } from "@/app/session-provider";
 import CamposIndex from "@/components/salidas/salidas-index";
 import CamposLogsIndex from "@/components/salidas/logs/logs-index";
 import ViewUsuarios from "@/components/salidas/usuarios/view-usuarios";
-import { use } from 'react';
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
-export default function Page(Props: Props) {
-  const params = use(Props.params);
+export default function Page({ params }: Props) {
   const { id } = params;
   const numericId = parseInt(id);
 
