@@ -189,8 +189,8 @@ export default function EventsCalendar() {
     const handleDialogChange = (open: boolean) => {
         if (!open) {
             setIsModalOpen(false);
-            setIsEditing(false); // Resetear el modo de edición
-            setEditingEvent({    // Resetear el formulario
+            setIsEditing(false); 
+            setEditingEvent({    
                 nombre: '',
                 fecha_inicio: '',
                 fecha_final: '',
