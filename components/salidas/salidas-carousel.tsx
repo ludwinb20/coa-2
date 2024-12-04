@@ -12,7 +12,7 @@ import {
 } from "../ui/carousel";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Loader2, Plus, X } from "lucide-react";
-import Image from 'next/image';
+
 import { getAsset, getAssetById } from "@/services/asset";
 import { useSession } from "@/app/session-provider";
 import { Asset } from "@/types/asset";
@@ -270,7 +270,7 @@ const CampoList: React.FC<CampoListProps> = ({ campoid }) => {
                     </div>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center justify-center p-4">
-                    <Image
+                    <img
                       src={campoUserAssets[asset.asset_id]?.[0]?.url || "Sin imagen"}
                       alt={asset.assets?.nombre || "Asset image"}
                       width={200}

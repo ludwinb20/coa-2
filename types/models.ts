@@ -177,26 +177,15 @@ export type scheduleCheck = {
   }
 
   export type Event = {
-    id: number;
+    id?: number;
     nombre: string;
     client_id: number;
     fecha_inicio: Date;
     fecha_final: Date;
-    categoria_id: string;
-    encargados: string;
+    categoria: string;
     creador_evento: number;
+    notas: string;
   }
 
-  export type Asset = {
-    id: number;
-    nombre: string;
-    precio: number;
-    estado: string;
-    file: string | null;
-    url?: string | null;
-    company_id: number;
-    disponibilidad: boolean;
-    categoria_id: number;
-    active: boolean;
-  };
+
 
