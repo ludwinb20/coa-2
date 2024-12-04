@@ -25,7 +25,7 @@ export const CreateUser = ({ companies, roles, onCreate }: CreateUserProps) => {
 
   return (
     <div className="p-4 bg-white shadow-md rounded-md">
-      <h2 className="text-lg font-bold mb-4">Crear Nuevo Usuario</h2>
+      {/* <h2 className="text-lg font-bold mb-4">Crear Nuevo Usuario</h2>
       <Input placeholder="Nombre" value={name} onChange={(e) => setName(e.target.value)} />
       <Input placeholder="Correo Electrónico" value={email} onChange={(e) => setEmail(e.target.value)} />
       <Select
@@ -38,7 +38,7 @@ export const CreateUser = ({ companies, roles, onCreate }: CreateUserProps) => {
         options={companies.flatMap(company => company.departments.map(dept => ({ value: dept.id, label: `${company.name} - ${dept.name}` })))}
         onChange={(value) => setSelectedDepartment(value)}
       />
-      <Button onClick={handleCreate} className="mt-4">Crear Usuario</Button>
+      <Button onClick={handleCreate} className="mt-4">Crear Usuario</Button> */}
     </div>
   );
 }; 

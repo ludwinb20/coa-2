@@ -43,7 +43,7 @@ const ViewUsuarios: React.FC<{ campoId: number }> = ({ campoId }) => {
                             <CardContent className="flex items-center space-x-2 p-4">
                                 <Avatar className="w-[40px] h-[40px]">
                                     <AvatarImage 
-                                        src={usuario.url ?? undefined} 
+                                        src={usuario.profiles?.url ?? undefined} 
                                         alt={usuario.profiles?.full_name ?? "avatar"} 
                                     />
                                     <AvatarFallback>

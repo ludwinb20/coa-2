@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 import { Session, AuthChangeEvent } from '@supabase/supabase-js';
+
+const supabase = createClient();
 
 export const useUser = () => {
   const [user, setUser] = useState<Session['user'] | null>(null);

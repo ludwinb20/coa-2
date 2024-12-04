@@ -8,7 +8,7 @@ import { getDepartments, getRoles } from "@/services/users";
 import rolesPermissions from "@/utils/roles";
 import { Departamento, Role } from "@/types/models";
 
-export default function Users() {
+export default function UsersCreatePage() {
   const { user } = useSession();
   const [roles, setRoles] = useState<Role[]>([]);
   const [departments, setDepartments] = useState<Departamento[]>([]);

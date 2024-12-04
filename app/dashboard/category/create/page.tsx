@@ -3,7 +3,7 @@
 
 import CategoryCreate from "@/components/category/category-create";
 
-export default function Clients() {
+export default function CategoryCreatePage() {
     return (
         <div className="">
           <CategoryCreate/>

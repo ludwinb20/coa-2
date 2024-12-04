@@ -15,4 +15,5 @@ export type Asset = {
       descripcion: string;
     };
     fotografia: string;
+    active: boolean;
   };

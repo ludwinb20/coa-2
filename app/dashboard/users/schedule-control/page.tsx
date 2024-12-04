@@ -6,7 +6,7 @@ import { ScheduleIndex } from "@/components/schedule-control/schedule-index";
 import { getDepartments, getMarcajes, getUsers } from "@/services/users";
 import { useQuery } from "@tanstack/react-query";
 
-export default function Users() {
+export default function Schedule() {
   const { user } = useSession();
 
   console.log(user);
