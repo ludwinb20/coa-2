@@ -105,7 +105,7 @@ export const routes: Route[] = [
     {
       id: 13,
       title: "Eventos",
-      icon: InventoryIcon,
+      icon: CalendarIcon,
       space: false,
       roles: [1, 2, 3, 4],
       children: [
@@ -113,7 +113,7 @@ export const routes: Route[] = [
           id: 15,
           title: "Eventos",
           href: "/dashboard/events",
-          icon: InventoryIcon,
+          icon: CalendarIcon,
           space: false,
           roles: [1, 2, 3, 4],
         },
@@ -121,11 +121,10 @@ export const routes: Route[] = [
           id: 14,
           title: "Categorias de Eventos",
           href: "/dashboard/events/category",
-          icon: InventoryIcon,
+          icon: CalendarIcon,
           space: false,
           roles: [1, 2, 3, 4],
         },
-        
       ],
     },
       

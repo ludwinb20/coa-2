@@ -194,3 +194,16 @@ export type Events_category = {
   created_at: Date;
 }
 
+export type Event_file = {
+  id: number;
+  event_id: number;
+  file: string;
+}
+
+export type Encargados = {
+  id?: number;
+  evento_id: number;
+  usuario_id: string;
+  created_at?: Date;
+}
+
