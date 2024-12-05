@@ -4,10 +4,18 @@ import { useEffect, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { Event as EventType } from '@/types/models';
-import { getEvents, createEvent, updateEvent, deleteEvent } from '@/services/events';
-
-
+import { Encargados, Event as EventType } from '@/types/models';
+import { getEvents, createEvent, updateEvent, deleteEvent, createEventFile, createEncargados } from '@/services/events';
+import Dropzone from '@/components/ui/dropzone';
+import { getCategories } from '@/services/events';
+import { Events_category } from '@/types/models';
+import { 
+    Select, 
+    SelectContent, 
+    SelectItem, 
+    SelectTrigger, 
+    SelectValue 
+} from "@/components/ui/select";
 
 import {
     Dialog,
@@ -17,25 +25,29 @@ import {
     DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { Label } from '@radix-ui/react-label';
+import MultiSelectUsuarios from '../salidas/create/multi-select';
 
 type FormattedEvent = {
     id: string;
     title: string;
     start: Date;
     end: Date;
+    allDay: boolean;
     extendedProps: {
         categoria: string;
         creador_evento: number;
         client_id: number;
         notas: string;
+        fecha_final: Date;
     };
 }
 
 export default function EventsCalendar() {
     const [events, setEvents] = useState<FormattedEvent[]>([]);
-    const [selectedEvent, setSelectedEvent] = useState<FormattedEvent | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<FormattedEvent | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [newEvent, setNewEvent] = useState({
         nombre: '',
@@ -44,7 +56,8 @@ export default function EventsCalendar() {
         categoria: '',
         creador_evento: 0,
         client_id: 0,
-        notas: ''
+        notas: '',
+        usuario_id: 0
     });
     const [isEditing, setIsEditing] = useState(false);
     const [editingEvent, setEditingEvent] = useState({
@@ -56,6 +69,21 @@ export default function EventsCalendar() {
         client_id: 0,
         notas: ''
     });
+    const [file, setFile] = useState<File | null>(null);
+    const [editingFile, setEditingFile] = useState<File | null>(null);
+    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+    const [categories, setCategories] = useState<Events_category[]>([]);
+
+    const initialNewEventState = {
+        nombre: '',
+        fecha_inicio: '',
+        fecha_final: '',
+        categoria: '',
+        creador_evento: 0,
+        client_id: 0,
+        notas: '',
+        usuario_id: 0
+    };
 
     const fetchEvents = async () => {
         try {
@@ -63,13 +91,15 @@ export default function EventsCalendar() {
             const formattedEvents: FormattedEvent[] = eventData.map(event => ({
                 id: event.id ? event.id.toString() : '',
                 title: event.nombre,
-                start: event.fecha_inicio,
-                end: event.fecha_final,
+                start: new Date(event.fecha_inicio),
+                end: new Date(event.fecha_inicio),
+                allDay: true,
                 extendedProps: {
                     categoria: event.categoria,
                     creador_evento: event.creador_evento,
                     client_id: event.client_id,
-                    notas: event.notas
+                    notas: event.notas,
+                    fecha_final: new Date(event.fecha_final)
                 }
             }));
             setEvents(formattedEvents);
@@ -82,7 +112,17 @@ export default function EventsCalendar() {
         fetchEvents();
     }, []);
 
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const categoriesData = await getCategories({});
+            setCategories(categoriesData);
+        };
+
+        fetchCategories();
+    }, []);
+
     const handleEventClick = (info: any) => {
+        info.jsEvent.preventDefault();
         const eventId = info.event.id;
         if (!eventId) {
             console.error('Event ID is undefined');
@@ -91,29 +131,37 @@ export default function EventsCalendar() {
         const event = events.find(e => e.id === eventId);
         if (event) {
             setSelectedEvent(event);
-            setIsModalOpen(true);
+            setIsViewModalOpen(true);
+            setIsCreateModalOpen(false);
         }
     };
 
     const handleDateClick = (info: any) => {
+        info.jsEvent.preventDefault();
         const selectedDate = new Date(info.date);
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Resetear la hora a medianoche
+        today.setHours(0, 0, 0, 0);
 
         if (selectedDate < today) {
-            // Si la fecha es anterior a hoy, no hacemos nada
             return;
         }
 
-        // Si la fecha es hoy o posterior, mostramos el modal
+        setSelectedEvent(null);
+        setIsViewModalOpen(false);
+        
         setSelectedDate(selectedDate);
         setIsCreateModalOpen(true);
+        setNewEvent({
+            ...newEvent,
+            fecha_inicio: selectedDate.toISOString().slice(0, 16),
+            fecha_final: selectedDate.toISOString().slice(0, 16)
+        });
     };
 
     const handleCreateEvent = async (e: React.FormEvent) => {
         e.preventDefault();
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Establecer la hora a medianoche para comparar solo la fecha
+        today.setHours(0, 0, 0, 0);
 
         const startDate = new Date(newEvent.fecha_inicio);
         if (startDate < today) {
@@ -122,15 +170,55 @@ export default function EventsCalendar() {
         }
 
         try {
-            const eventData: EventType = {
+            const { usuario_id, ...eventData } = {
                 ...newEvent,
                 fecha_inicio: startDate,
                 fecha_final: new Date(newEvent.fecha_final)
             };
 
-            await createEvent(eventData);
+            const createdEvent = await createEvent(eventData);
+
+            if (!createdEvent || typeof createdEvent.id !== 'number') {
+                throw new Error('No se pudo obtener el ID del evento creado');
+            }
+
+            const eventoId = createdEvent.id;
+
+            const encargadosPromises = selectedUsers.map(async (userId) => {
+                try {
+                    const encargadoData: Encargados = {
+                        evento_id: eventoId,
+                        usuario_id: userId
+                    };
+                    
+                    const { success } = await createEncargados(encargadoData);
+                    if (!success) {
+                        console.error(`Error al asignar encargado ${userId}`);
+                    }
+                } catch (error) {
+                    console.error(`Error al procesar encargado ${userId}:`, error);
+                }
+            });
+
+            await Promise.all(encargadosPromises);
+
+            if (file) {
+                const { success: fileSuccess } = await createEventFile({
+                    event_id: eventoId,
+                    file: file
+                });
+
+                if (!fileSuccess) {
+                    console.error('Error al crear el archivo del evento');
+                }
+            }
+
             setIsCreateModalOpen(false);
             fetchEvents();
+            setNewEvent(initialNewEventState);
+            setSelectedUsers([]);
+            setFile(null);
+
         } catch (error) {
             console.error('Error al crear evento:', error);
         }
@@ -163,10 +251,12 @@ export default function EventsCalendar() {
                 fecha_final: new Date(editingEvent.fecha_final)
             };
 
-            await updateEvent(eventData);
+            await updateEvent(eventData, editingFile);
             setIsEditing(false);
-            setIsModalOpen(false);
+            setIsViewModalOpen(false);
             fetchEvents();
+            setEditingFile(null);
+
         } catch (error) {
             console.error('Error al actualizar evento:', error);
         }
@@ -178,7 +268,7 @@ export default function EventsCalendar() {
         if (window.confirm('¿Estás seguro de que deseas eliminar este evento?')) {
             try {
                 await deleteEvent(parseInt(selectedEvent.id));
-                setIsModalOpen(false);
+                setIsViewModalOpen(false);
                 fetchEvents();
             } catch (error) {
                 console.error('Error al eliminar evento:', error);
@@ -188,7 +278,7 @@ export default function EventsCalendar() {
 
     const handleDialogChange = (open: boolean) => {
         if (!open) {
-            setIsModalOpen(false);
+            setIsViewModalOpen(false);
             setIsEditing(false); 
             setEditingEvent({    
                 nombre: '',
@@ -241,10 +331,40 @@ export default function EventsCalendar() {
                 firstDay={1}
                 eventClick={handleEventClick}
                 dateClick={handleDateClick}
+                selectable={true}
+                displayEventEnd={false}
             />
 
-            <Dialog open={isModalOpen} onOpenChange={handleDialogChange}>
-                <DialogContent className="max-w-md mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
+            <Dialog 
+                open={isViewModalOpen} 
+                onOpenChange={(open) => {
+                    setIsViewModalOpen(open);
+                    if (!open) {
+                        setIsEditing(false);
+                        setSelectedEvent(null);
+                        setEditingEvent({
+                            nombre: '',
+                            fecha_inicio: '',
+                            fecha_final: '',
+                            categoria: '',
+                            creador_evento: 0,
+                            client_id: 0,
+                            notas: ''
+                        });
+                        setEditingFile(null);
+                        setSelectedUsers([]);
+                    }
+                }}
+            >
+                <DialogContent className="max-w-[800px] w-full">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {isEditing ? "Editar Evento" : "Detalles del Evento"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {isEditing ? "Modifique los detalles del evento" : "Información del evento"}
+                        </DialogDescription>
+                    </DialogHeader>
                     {selectedEvent && !isEditing ? (
                         <>
                             <DialogHeader>
@@ -274,7 +394,7 @@ export default function EventsCalendar() {
                                     Eliminar
                                 </button>
                                 <button
-                                    onClick={() => setIsModalOpen(false)}
+                                    onClick={() => setIsViewModalOpen(false)}
                                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded"
                                 >
                                     Cerrar
@@ -313,29 +433,68 @@ export default function EventsCalendar() {
                                     required
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-200">Fecha de Inicio</label>
-                                <input
-                                    type="datetime-local"
-                                    value={editingEvent.fecha_inicio}
-                                    onChange={(e) => setEditingEvent({ ...editingEvent, fecha_inicio: e.target.value })}
-                                    className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 
-                                             dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 
-                                             focus:border-transparent"
-                                    required
-                                />
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <Label>Fecha de Inicio</Label>
+                                    <input
+                                        type="datetime-local"
+                                        value={editingEvent.fecha_inicio}
+                                        onChange={(e) => setEditingEvent({ ...editingEvent, fecha_inicio: e.target.value })}
+                                        className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 
+                                                 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 
+                                                 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <Label>Fecha de Finalización</Label>
+                                    <input
+                                        type="datetime-local"
+                                        value={editingEvent.fecha_final}
+                                        onChange={(e) => setEditingEvent({ ...editingEvent, fecha_final: e.target.value })}
+                                        className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 
+                                                 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 
+                                                 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-200">Fecha de Finalización</label>
-                                <input
-                                    type="datetime-local"
-                                    value={editingEvent.fecha_final}
-                                    onChange={(e) => setEditingEvent({ ...editingEvent, fecha_final: e.target.value })}
-                                    className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 
-                                             dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 
-                                             focus:border-transparent"
-                                    required
+                                <Label>Archivo</Label>
+                                <Dropzone
+                                    onDrop={(files) => setEditingFile(files[0])}
+                                    onDelete={() => setEditingFile(null)}
+                                    className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
+                                    text="Arrastre una imagen aquí o haga click para seleccionar"
                                 />
+                                {editingFile && (
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Archivo seleccionado: {editingFile.name}
+                                    </p>
+                                )}
+                            </div>
+                            <div>
+                                <Label>Categoría</Label>
+                                <Select 
+                                    value={editingEvent.categoria}
+                                    onValueChange={(value) => 
+                                        setEditingEvent({ ...editingEvent, categoria: value })
+                                    }
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Seleccionar categoría" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((category) => (
+                                            <SelectItem 
+                                                key={category.id} 
+                                                value={category.nombre}
+                                            >
+                                                {category.nombre}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <DialogFooter className="space-x-2">
                                 <button
@@ -362,7 +521,7 @@ export default function EventsCalendar() {
             </Dialog>
 
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                <DialogContent>
+                <DialogContent className="max-w-[800px] w-full">
                     <DialogHeader>
                         <DialogTitle>Crear Nuevo Evento</DialogTitle>
                         <DialogDescription>
@@ -391,14 +550,34 @@ export default function EventsCalendar() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Categoría</label>
-                            <input
-                                type="text"
-                                value={newEvent.categoria}
-                                onChange={(e) => setNewEvent({ ...newEvent, categoria: e.target.value })}
-                                className="w-full p-2 border rounded"
-                                required
+                            <Label>Encargados</Label>
+                            <MultiSelectUsuarios 
+                                selectedUsers={selectedUsers} 
+                                onChange={setSelectedUsers} 
                             />
+                        </div>
+                        <div>
+                            <Label>Categoría</Label>
+                            <Select 
+                                value={newEvent.categoria}
+                                onValueChange={(value) => 
+                                    setNewEvent({ ...newEvent, categoria: value })
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Seleccionar categoría" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map((category) => (
+                                        <SelectItem 
+                                            key={category.id} 
+                                            value={category.nombre}
+                                        >
+                                            {category.nombre}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Notas</label>
@@ -410,26 +589,44 @@ export default function EventsCalendar() {
                                 required
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Fecha de Inicio</label>
-                            <input
-                                type="datetime-local"
-                                value={newEvent.fecha_inicio}
-                                onChange={(e) => setNewEvent({ ...newEvent, fecha_inicio: e.target.value })}
-                                className="w-full p-2 border rounded"
-                                required
-                            />
+                        <div className="flex gap-4">
+                            <div className="flex-1">
+                                <Label>Fecha de Inicio</Label>
+                                <input
+                                    type="datetime-local"
+                                    value={newEvent.fecha_inicio}
+                                    onChange={(e) => setNewEvent({ ...newEvent, fecha_inicio: e.target.value })}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <Label>Fecha de Finalización</Label>
+                                <input
+                                    type="datetime-local"
+                                    value={newEvent.fecha_final}
+                                    onChange={(e) => setNewEvent({ ...newEvent, fecha_final: e.target.value })}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
                         </div>
+                      
                         <div>
-                            <label className="block text-sm font-medium mb-1">Fecha de Finalización</label>
-                            <input
-                                type="datetime-local"
-                                value={newEvent.fecha_final}
-                                onChange={(e) => setNewEvent({ ...newEvent, fecha_final: e.target.value })}
-                                className="w-full p-2 border rounded"
-                                required
+                            <Label>Archivo</Label>
+                            <Dropzone
+                                onDrop={(files) => setFile(files[0])}
+                                onDelete={() => setFile(null)}
+                                className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
+                                text="Arrastre una imagen aquí o haga click para seleccionar"
                             />
+                            {file && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Archivo seleccionado: {file.name}
+                                </p>
+                            )}
                         </div>
+                        
                         <DialogFooter>
                             <button
                                 type="button"

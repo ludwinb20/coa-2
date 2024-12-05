@@ -1,4 +1,4 @@
-import { Client, Event } from "@/types/models";
+import { Client, Encargados, Event, Event_file, Events_category } from "@/types/models";
 import { uploadFile } from "@/utils/handle-files";
 import { createClient } from "@/utils/supabase/client";
 
@@ -28,21 +28,55 @@ export const createEvent = async (event: Event): Promise<Event> => {
     return data[0] as Event;
 }
 
-export const updateEvent = async (event: Event): Promise<Event> => {
-    const { data, error } = await supabase
-        .from('events')
-        .update(event)
-        .eq('id', event.id)
-        .select()
-        .single();
+export const updateEvent = async (event: Event, file?: File | null): Promise<Event> => {
+    try {
+        // 1. Primero actualizamos el evento
+        const { data: updatedEvent, error: eventError } = await supabase
+            .from('events')
+            .update(event)
+            .eq('id', event.id)
+            .select()
+            .single();
 
-    if (error) {
-        throw new Error(error.message);
+        if (eventError) {
+            throw new Error(eventError.message);
+        }
+
+        // 2. Si hay un nuevo archivo, lo manejamos
+        if (file) {
+            let uploadedFile: string | null = null;
+            const result = await uploadFile({
+                bucket: "eventos",
+                url: "eventos",
+                file: file
+            });
+            
+            if (result.success) {
+                uploadedFile = result.data;
+                
+                // Crear nuevo registro en events_files
+                const { error: fileError } = await supabase
+                    .from('events_files')
+                    .insert([{
+                        evento_id: event.id,
+                        file: uploadedFile
+                    }]);
+
+                if (fileError) {
+                    console.error('Error al guardar el archivo:', fileError);
+                }
+            }
+        }
+
+        if (!updatedEvent) {
+            throw new Error("Event update failed, no data returned.");
+        }
+
+        return updatedEvent as Event;
+    } catch (error) {
+        console.error('Error en updateEvent:', error);
+        throw error;
     }
-    if (data === null) {
-        throw new Error("Event update failed, no data returned.");
-    }
-    return data as Event;
 }
 
 export const deleteEvent = async (id: number): Promise<void> => {
@@ -52,3 +86,114 @@ export const deleteEvent = async (id: number): Promise<void> => {
     }
 }
 
+export const createEventFile = async ({
+    event_id,
+    file
+}: {
+    event_id: number;
+    file?: File;
+}): Promise<{ eventFile: Event_file | null; success: boolean }> => {
+    let uploadedFile: string | null = null;
+
+    if (file) {
+        const result = await uploadFile({
+            bucket: "eventos",
+            url: "eventos",
+            file: file
+        });
+        if (result.success) uploadedFile = result.data;
+    }
+
+    const { data, error } = await supabase
+        .from("events_files")
+        .insert([
+            {
+                evento_id: event_id,
+                file: uploadedFile,
+            },
+        ])
+        .select()
+        .single();
+
+    if (error) {
+        console.log("Error creating event file:", error);
+        return { eventFile: null, success: false };
+    }
+
+    return { eventFile: data, success: true };
+};
+
+export const getCategories = async ({}: {
+    }): Promise<Events_category[]> => {
+    const { data, error } = await supabase
+        .from("events_category")
+        .select("*")
+        .order("id", {
+            ascending: true,
+        });
+    if (error) {
+        console.error("Error fetching Categories:", error);
+        return [];
+    }
+    return data;
+};
+
+export const createCategoryEvents = async (category: Events_category): Promise<{ success: boolean; data?: Events_category }> => {
+    try {
+        const { data, error } = await supabase.from('events_category').insert(category).select();
+        if (error) {
+            return { success: false };
+        }
+        return { 
+            success: true, 
+            data: data[0] as Events_category 
+        };
+    } catch (error) {
+        return { success: false };
+    }
+};
+
+export const updateCategoryEvents = async (category: Events_category): Promise<{ success: boolean; data?: Events_category }> => {
+    try {
+        const { data, error } = await supabase.from('events_category').update(category).eq('id', category.id).select();
+        if (error) {
+            return { success: false };
+        }
+        return { success: true, data: data[0] as Events_category };
+    } catch (error) {
+        return { success: false };
+    }
+}
+
+export const deleteCategoryEvents = async (id: number): Promise<void> => {
+    const { error } = await supabase.from('events_category').delete().eq('id', id);
+    if (error) {
+        throw new Error(error.message);
+    }
+}
+
+
+export const createEncargados = async (encargado: Encargados): Promise<{ success: boolean; data?: Encargados }> => {
+    try {
+        // Asegurarnos de que los IDs sean números
+        const encargadoData = {
+            evento_id: Number(encargado.evento_id),
+            usuario_id: encargado.usuario_id
+        };
+
+        const { data, error } = await supabase
+            .from('events_encargados')
+            .insert(encargadoData)
+            .select();
+
+        if (error) {
+            console.error('Error en createEncargados:', error);
+            return { success: false };
+        }
+
+        return { success: true, data: data[0] as Encargados };
+    } catch (error) {
+        console.error('Error en createEncargados:', error);
+        return { success: false };
+    }
+}
