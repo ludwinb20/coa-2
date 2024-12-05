@@ -3292,6 +3292,7 @@ const Bin = (props: IconProps) => {
         fill="currentColor"
       ></path>
     </svg>
+
   );
 };
 
