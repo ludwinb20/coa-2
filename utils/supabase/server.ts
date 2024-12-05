@@ -16,7 +16,7 @@ export async function createClient(request?: NextRequest, response?: NextRespons
       cookieStore.set({ name, value: '', ...options });
     },
     getAll() {
-      return cookieStore.getAll(); // Utiliza `getAll` si está disponible
+      return cookieStore.getAll();
     },
   };
 
