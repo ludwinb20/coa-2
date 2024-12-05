@@ -187,11 +187,10 @@ export type scheduleCheck = {
     notas: string;
   }
 
-export type events_category = {
+export type Events_category = {
   id: number;
   nombre: string;
   descripcion: string;
-  event_id: number;
   created_at: Date;
 }
 
