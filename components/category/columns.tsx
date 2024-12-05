@@ -1,6 +1,7 @@
 "use client";
 
-import { Asset, Client , Category} from "@/types/models";
+import { Client , Category} from "@/types/models";
+import { Asset } from "@/types/asset";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "../ui/button";

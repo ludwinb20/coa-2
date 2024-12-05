@@ -5,7 +5,7 @@ import path from "path";
 
 const secretKey = process.env.JWT_SECRET || "";
 
-export const config = {
+const config = {
   api: {
     bodyParser: false, // Deshabilitar el bodyParser de Next.js
   },
