@@ -107,6 +107,7 @@ export async function makeScheduleCheck({
 
     const entrada = currentPunch[0].in;
 
+    const fechaActual = new Date();
     if (!entrada) {
       console.error("El campo 'in' no está disponible o es nulo.");
       return { success: false };
@@ -118,7 +119,6 @@ export async function makeScheduleCheck({
       return { success: false };
     }
     
-    const fechaActual = new Date();
     const total = Math.floor((fechaActual.getTime() - fechaEntrada.getTime()) / 1000);
 
     // Actualizar el registro existente con la hora de salida
@@ -142,7 +142,46 @@ export async function makeScheduleCheck({
       return { success: false };
     }
 
-    return { success: true, data: updatedPunch[0] };
+    const { data: profiles, error: profileError } = await admin
+    .from("profiles")
+    .select("*")
+    .eq("id", id)
+    .limit(1);
+  
+  if (profileError) {
+    console.error("Error fetching profile:", profileError.message);
+    return { success: false };
+  }
+  
+  if (!profiles || profiles.length === 0) {
+    console.error("No profile data returned after update.");
+    return { success: false };
+  }
+  
+  const profile = profiles[0];
+  
+  if (profile.avatar_url) {
+    const { data: signedUrlData, error: signedUrlError } = await admin.storage
+      .from("avatars")
+      .createSignedUrl(`users/${profile.avatar_url}`, 3600);
+  
+    if (signedUrlError) {
+      console.error("Error generating signed URL:", signedUrlError.message);
+    }else{
+      profile.url = signedUrlData.signedUrl;
+    }
+
+  }
+
+
+  const opciones: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  };
+
+   profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
+    return { success: true, data: profile };
   } catch (error) {
     console.error("Unexpected error:", error);
     return { success: false };

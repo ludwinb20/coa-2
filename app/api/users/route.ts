@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Error procesando la solicitud" }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Punch creado correctamente" }, { status: 200 });
+    return NextResponse.json({ message: "Punch creado correctamente", data: response.data }, { status: 200 });
   } catch (error: any) {
     console.error("Error en POST:", error.message);
     return NextResponse.json(
