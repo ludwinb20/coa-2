@@ -5,7 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { Encargados, Event as EventType } from '@/types/models';
-import { getEvents, createEvent, updateEvent, deleteEvent, createEventFile, createEncargados } from '@/services/events';
+import { getEvents, createEvent, updateEvent, deleteEvent, createEventFile, createEncargados, getEncargados } from '@/services/events';
 import Dropzone from '@/components/ui/dropzone';
 import { getCategories } from '@/services/events';
 import { Events_category } from '@/types/models';
@@ -45,6 +45,12 @@ type FormattedEvent = {
         creador_evento: string;
         creador_nombre: string;
         client_id: number;
+        clients?: {
+            id: number;
+            name: string;
+            file?: string;
+            url?: string | null;
+        };
         notas: string;
         fecha_final: Date;
     };
@@ -84,6 +90,7 @@ export default function EventsCalendar() {
         { id: 1, file: null }
     ]);
     const [clients, setClients] = useState<Client[]>([]);
+    const [eventEncargados, setEventEncargados] = useState<Encargados[]>([]);
 
     const initialNewEventState = {
         nombre: '',
@@ -116,6 +123,7 @@ export default function EventsCalendar() {
                     creador_evento: event.creador_evento,
                     creador_nombre: event.profiles?.full_name || 'Usuario Desconocido',
                     client_id: event.client_id,
+                    clients: event.clients,
                     notas: event.notas,
                     fecha_final: new Date(event.fecha_final)
                 }
@@ -150,7 +158,7 @@ export default function EventsCalendar() {
         fetchClients();
     }, [user?.empresa?.id]);
 
-    const handleEventClick = (info: any) => {
+    const handleEventClick = async (info: any) => {
         info.jsEvent.preventDefault();
         const eventId = info.event.id;
         if (!eventId) {
@@ -159,6 +167,13 @@ export default function EventsCalendar() {
         }
         const event = events.find(e => e.id === eventId);
         if (event) {
+            try {
+                const encargados = await getEncargados(parseInt(eventId));
+                setEventEncargados(encargados);
+            } catch (error) {
+                console.error('Error al cargar encargados:', error);
+                setEventEncargados([]);
+            }
             setSelectedEvent(event);
             setIsViewModalOpen(true);
             setIsCreateModalOpen(false);
@@ -343,7 +358,8 @@ export default function EventsCalendar() {
     const handleDialogChange = (open: boolean) => {
         if (!open) {
             setIsViewModalOpen(false);
-            setIsEditing(false); 
+            setIsEditing(false);
+            setEventEncargados([]);
             setEditingEvent({    
                 nombre: '',
                 fecha_inicio: '',
@@ -459,11 +475,20 @@ export default function EventsCalendar() {
                                 </div>
                             </div>
                             <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">ID del Cliente</span>
-                                    <span className="font-semibold text-gray-800">
-                                        {selectedEvent.extendedProps.client_id}
-                                    </span>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Cliente</span>
+                                    <div className="flex items-center gap-2">
+                                        {selectedEvent.extendedProps.clients?.url && (
+                                            <img 
+                                                src={selectedEvent.extendedProps.clients.url}
+                                                alt={selectedEvent.extendedProps.clients.name}
+                                                className="w-8 h-8 rounded-full object-cover"
+                                            />
+                                        )}
+                                        <span className="font-semibold text-gray-800">
+                                            {selectedEvent.extendedProps.clients?.name || 'Sin cliente asignado'}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-600">Categoría</span>
@@ -484,6 +509,41 @@ export default function EventsCalendar() {
                                     <p className="text-gray-800">
                                         {selectedEvent.extendedProps.notas || 'Sin notas adicionales'}
                                     </p>
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 mb-2">Encargados</p>
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                  
+                                    {eventEncargados && eventEncargados.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {eventEncargados.map((encargado) => (
+                                                <div 
+                                                    key={encargado.id} 
+                                                    className="flex items-center gap-2 p-2 bg-white rounded-md shadow-sm"
+                                                >
+                                                    {encargado.profiles?.url ? (
+                                                        <img 
+                                                            src={encargado.profiles.url}
+                                                            alt={encargado.profiles.full_name}
+                                                            className="w-12 h-12 rounded-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                                                            <span className="text-gray-500 text-sm">
+                                                                {encargado.profiles?.full_name?.charAt(0) || '?'}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    <span className="text-gray-800 text-base">
+                                                        {encargado.profiles?.full_name || 'Usuario Desconocido'}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-500 text-sm">No hay encargados asignados</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -567,20 +627,6 @@ export default function EventsCalendar() {
                                 </div>
                             </div>
                             <div>
-                                <Label>Archivo</Label>
-                                <Dropzone
-                                    onDrop={(files) => setEditingFile(files[0])}
-                                    onDelete={() => setEditingFile(null)}
-                                    className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
-                                    text="Arrastre una imagen o archivo aquí o haga click para seleccionar"
-                                />
-                                {editingFile && (
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        Archivo seleccionado: {editingFile.name}
-                                    </p>
-                                )}
-                            </div>
-                            <div>
                                 <Label>Categoría</Label>
                                 <Select 
                                     value={editingEvent.categoria}
@@ -603,6 +649,21 @@ export default function EventsCalendar() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                            <div>
+                                <Label>Archivo</Label>
+                                <Dropzone
+                                    onDrop={(files) => setEditingFile(files[0])}
+                                    onDelete={() => setEditingFile(null)}
+                                    className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
+                                    text="Arrastre una imagen o archivo aquí o haga click para seleccionar"
+                                />
+                                {editingFile && (
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Archivo seleccionado: {editingFile.name}
+                                    </p>
+                                )}
+                            </div>
+                            
                             <DialogFooter className="space-x-2">
                                 <button
                                     type="button"

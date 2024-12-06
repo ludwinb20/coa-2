@@ -7,12 +7,18 @@ const supabase = createClient();
 
 export const getEvents = async (): Promise<Event[]> => {
     try {
-        const { data, error } = await supabase
+        // Primero obtenemos los eventos con sus relaciones básicas
+        const { data: events, error } = await supabase
             .from('events')
             .select(`
                 *,
                 profiles:creador_evento (
                     full_name
+                ),
+                clients:client_id (
+                    id,
+                    name,
+                    file
                 )
             `);
 
@@ -21,7 +27,39 @@ export const getEvents = async (): Promise<Event[]> => {
             return [];
         }
 
-        return data;
+        // Ahora procesamos los eventos para incluir las URLs de los clientes
+        const eventsWithClientUrls = await Promise.all(
+            (events || []).map(async (event) => {
+                if (!event.clients?.file) {
+                    return {
+                        ...event,
+                        clients: event.clients ? { ...event.clients, url: null } : null
+                    };
+                }
+
+                const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+                    .from("avatars")
+                    .createSignedUrl(`clients/${event.clients.file}`, 3600);
+
+                if (signedUrlError || !signedUrlData) {
+                    console.error(`Error creando URL firmada para el archivo ${event.clients.file}:`, signedUrlError?.message);
+                    return {
+                        ...event,
+                        clients: { ...event.clients, url: null }
+                    };
+                }
+
+                return {
+                    ...event,
+                    clients: {
+                        ...event.clients,
+                        url: signedUrlData.signedUrl
+                    }
+                };
+            })
+        );
+
+        return eventsWithClientUrls;
     } catch (error) {
         console.error('Error:', error);
         return [];
@@ -212,3 +250,70 @@ export const createEncargados = async (encargado: Encargados): Promise<{ success
         return { success: false };
     }
 }
+
+export const getEncargados = async (evento_id: number): Promise<Encargados[]> => { 
+    try {
+        const { data, error } = await supabase
+            .from('events_encargados')
+            .select(`
+                *,
+                profiles:usuario_id (
+                    id,
+                    full_name,
+                    avatar_url
+                )
+            `)
+            .eq('evento_id', evento_id);
+        
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        // Procesar las URLs de los avatares
+        const encargadosWithUrls = await Promise.all(
+            (data || []).map(async (encargado) => {
+                if (!encargado.profiles?.avatar_url) {
+                    return {
+                        ...encargado,
+                        profiles: {
+                            ...encargado.profiles,
+                            url: null
+                        }
+                    };
+                }
+
+                const { data: signedUrlData, error: signedUrlError } = 
+                    await supabase.storage
+                        .from("avatars")
+                        .createSignedUrl(`users/${encargado.profiles.avatar_url}`, 3600);
+
+                if (signedUrlError || !signedUrlData) {
+                    console.error(
+                        `Error creating signed URL for ${encargado.profiles.avatar_url}:`,
+                        signedUrlError?.message
+                    );
+                    return {
+                        ...encargado,
+                        profiles: {
+                            ...encargado.profiles,
+                            url: null
+                        }
+                    };
+                }
+
+                return {
+                    ...encargado,
+                    profiles: {
+                        ...encargado.profiles,
+                        url: signedUrlData.signedUrl
+                    }
+                };
+            })
+        );
+        
+        return encargadosWithUrls;
+    } catch (error) {
+        console.error('Error:', error);
+        return [];
+    }
+}   
