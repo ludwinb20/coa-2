@@ -1,5 +1,6 @@
 "use client";
-import { Asset, Category } from "@/types/models";
+import { Category } from "@/types/models";
+import { Asset } from "@/types/asset";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";

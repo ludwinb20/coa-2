@@ -1,4 +1,4 @@
-import { Asset } from "@/types/models";
+import { Asset } from "@/types/asset";
 import {
   AlertDialog,
   AlertDialogCancel,
