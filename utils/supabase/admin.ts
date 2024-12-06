@@ -139,6 +139,7 @@ export async function makeScheduleCheck({
     };
   
      profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
+     profile.type = "in";
      console.log(profile);
       return { success: true, data: profile };
     }
@@ -215,6 +216,7 @@ export async function makeScheduleCheck({
   };
 
    profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
+   profile.type = "out";
    console.log(profile);
     return { success: true, data: profile };
   } catch (error) {
