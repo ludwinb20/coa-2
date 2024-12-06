@@ -136,6 +136,7 @@ export async function makeScheduleCheck({
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
+      timeZone: "America/Tegucigalpa"
     };
   
      profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
@@ -213,6 +214,7 @@ export async function makeScheduleCheck({
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
+    timeZone: "America/Tegucigalpa"
   };
 
    profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
