@@ -168,6 +168,10 @@ export type scheduleCheck = {
   in: Date;
   out: Date;
   total: number;
+  in_photo: string | null;
+  out_photo: string | null;
+  hora? : string;
+  url?: string | null;
 };
   export type Incidencia = {
     id: number;

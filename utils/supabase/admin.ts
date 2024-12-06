@@ -170,10 +170,7 @@ export async function makeScheduleCheck({
     }else{
       profile.url = signedUrlData.signedUrl;
     }
-
   }
-
-
   const opciones: Intl.DateTimeFormatOptions = {
     hour: "2-digit",
     minute: "2-digit",
@@ -181,6 +178,7 @@ export async function makeScheduleCheck({
   };
 
    profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
+   console.log(profile);
     return { success: true, data: profile };
   } catch (error) {
     console.error("Unexpected error:", error);
