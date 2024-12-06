@@ -27,6 +27,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from '@radix-ui/react-label';
 import MultiSelectUsuarios from '../salidas/create/multi-select';
+import { Plus, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { getClients } from '@/services/clients';
+import { Client } from '@/types/models';
+import { useSession } from '@/app/session-provider';
+import { toast } from 'sonner';
 
 type FormattedEvent = {
     id: string;
@@ -36,7 +42,8 @@ type FormattedEvent = {
     allDay: boolean;
     extendedProps: {
         categoria: string;
-        creador_evento: number;
+        creador_evento: string;
+        creador_nombre: string;
         client_id: number;
         notas: string;
         fecha_final: Date;
@@ -44,6 +51,7 @@ type FormattedEvent = {
 }
 
 export default function EventsCalendar() {
+    const { user } = useSession();
     const [events, setEvents] = useState<FormattedEvent[]>([]);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -54,18 +62,17 @@ export default function EventsCalendar() {
         fecha_inicio: '',
         fecha_final: '',
         categoria: '',
-        creador_evento: 0,
+        creador_evento: '',
         client_id: 0,
         notas: '',
-        usuario_id: 0
-    });
+        });
     const [isEditing, setIsEditing] = useState(false);
     const [editingEvent, setEditingEvent] = useState({
         nombre: '',
         fecha_inicio: '',
         fecha_final: '',
         categoria: '',
-        creador_evento: 0,
+        creador_evento: '',
         client_id: 0,
         notas: ''
     });
@@ -73,17 +80,27 @@ export default function EventsCalendar() {
     const [editingFile, setEditingFile] = useState<File | null>(null);
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [categories, setCategories] = useState<Events_category[]>([]);
+    const [fileUploads, setFileUploads] = useState<Array<{ id: number, file: File | null }>>([
+        { id: 1, file: null }
+    ]);
+    const [clients, setClients] = useState<Client[]>([]);
 
     const initialNewEventState = {
         nombre: '',
         fecha_inicio: '',
         fecha_final: '',
         categoria: '',
-        creador_evento: 0,
+        creador_evento: '',
         client_id: 0,
         notas: '',
-        usuario_id: 0
     };
+
+    useEffect(() => {
+        if (!user?.id) {
+            toast.error("Debe iniciar sesión para crear eventos");
+            return;
+        }
+    }, [user]);
 
     const fetchEvents = async () => {
         try {
@@ -97,6 +114,7 @@ export default function EventsCalendar() {
                 extendedProps: {
                     categoria: event.categoria,
                     creador_evento: event.creador_evento,
+                    creador_nombre: event.profiles?.full_name || 'Usuario Desconocido',
                     client_id: event.client_id,
                     notas: event.notas,
                     fecha_final: new Date(event.fecha_final)
@@ -120,6 +138,17 @@ export default function EventsCalendar() {
 
         fetchCategories();
     }, []);
+
+    useEffect(() => {
+        const fetchClients = async () => {
+            if (user?.empresa?.id) {
+                const clientsData = await getClients({ empresa_id: user.empresa.id });
+                setClients(clientsData);
+            }
+        };
+
+        fetchClients();
+    }, [user?.empresa?.id]);
 
     const handleEventClick = (info: any) => {
         info.jsEvent.preventDefault();
@@ -158,8 +187,31 @@ export default function EventsCalendar() {
         });
     };
 
+    const addFileUpload = () => {
+        const newId = fileUploads.length + 1;
+        setFileUploads([...fileUploads, { id: newId, file: null }]);
+    };
+
+    const removeFileUpload = (id: number) => {
+        if (fileUploads.length > 1) {
+            setFileUploads(fileUploads.filter(upload => upload.id !== id));
+        }
+    };
+
+    const handleFileChange = (id: number, file: File | null) => {
+        setFileUploads(fileUploads.map(upload => 
+            upload.id === id ? { ...upload, file } : upload
+        ));
+    };
+
     const handleCreateEvent = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!user?.id) {
+            toast.error("Debe iniciar sesión para crear eventos");
+            return;
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -170,57 +222,69 @@ export default function EventsCalendar() {
         }
 
         try {
-            const { usuario_id, ...eventData } = {
-                ...newEvent,
+            const eventData = {
+                nombre: newEvent.nombre,
                 fecha_inicio: startDate,
-                fecha_final: new Date(newEvent.fecha_final)
+                fecha_final: new Date(newEvent.fecha_final),
+                categoria: newEvent.categoria,
+                creador_evento: user.id.toString(),
+                client_id: newEvent.client_id || 0,
+                notas: newEvent.notas
             };
 
             const createdEvent = await createEvent(eventData);
 
-            if (!createdEvent || typeof createdEvent.id !== 'number') {
-                throw new Error('No se pudo obtener el ID del evento creado');
-            }
+            if (createdEvent?.id) {
+                const eventoId = createdEvent.id;
 
-            const eventoId = createdEvent.id;
-
-            const encargadosPromises = selectedUsers.map(async (userId) => {
-                try {
-                    const encargadoData: Encargados = {
-                        evento_id: eventoId,
-                        usuario_id: userId
-                    };
-                    
-                    const { success } = await createEncargados(encargadoData);
-                    if (!success) {
-                        console.error(`Error al asignar encargado ${userId}`);
+                const encargadosPromises = selectedUsers.map(async (userId) => {
+                    try {
+                        const encargadoData: Encargados = {
+                            evento_id: eventoId,
+                            usuario_id: userId
+                        };
+                        
+                        const { success } = await createEncargados(encargadoData);
+                        if (!success) {
+                            console.error(`Error al asignar encargado ${userId}`);
+                        }
+                    } catch (error) {
+                        console.error(`Error al procesar encargado ${userId}:`, error);
                     }
-                } catch (error) {
-                    console.error(`Error al procesar encargado ${userId}:`, error);
-                }
-            });
-
-            await Promise.all(encargadosPromises);
-
-            if (file) {
-                const { success: fileSuccess } = await createEventFile({
-                    event_id: eventoId,
-                    file: file
                 });
 
-                if (!fileSuccess) {
-                    console.error('Error al crear el archivo del evento');
-                }
-            }
+                await Promise.all(encargadosPromises);
 
-            setIsCreateModalOpen(false);
-            fetchEvents();
-            setNewEvent(initialNewEventState);
-            setSelectedUsers([]);
-            setFile(null);
+                const filesPromises = fileUploads
+                    .filter(upload => upload.file !== null)
+                    .map(async (upload) => {
+                        if (upload.file) {
+                            const { success } = await createEventFile({
+                                event_id: eventoId,
+                                file: upload.file
+                            });
+
+                            if (!success) {
+                                console.error(`Error al subir archivo: ${upload.file.name}`);
+                            }
+                        }
+                    });
+
+                await Promise.all(filesPromises);
+
+                setIsCreateModalOpen(false);
+                fetchEvents();
+                setNewEvent({
+                    ...initialNewEventState,
+                    creador_evento: user.id.toString()
+                });
+                setSelectedUsers([]);
+                setFileUploads([{ id: 1, file: null }]);
+            }
 
         } catch (error) {
             console.error('Error al crear evento:', error);
+            toast.error("Error al crear el evento");
         }
     };
 
@@ -285,7 +349,7 @@ export default function EventsCalendar() {
                 fecha_inicio: '',
                 fecha_final: '',
                 categoria: '',
-                creador_evento: 0,
+                creador_evento: '',
                 client_id: 0,
                 notas: ''
             });
@@ -347,7 +411,7 @@ export default function EventsCalendar() {
                             fecha_inicio: '',
                             fecha_final: '',
                             categoria: '',
-                            creador_evento: 0,
+                            creador_evento: '',
                             client_id: 0,
                             notas: ''
                         });
@@ -367,40 +431,83 @@ export default function EventsCalendar() {
                     </DialogHeader>
                     {selectedEvent && !isEditing ? (
                         <>
-                            <DialogHeader>
-                                <DialogTitle className="text-xl font-semibold text-gray-800">{selectedEvent.title}</DialogTitle>
-                                <DialogDescription className="text-sm text-gray-500">
-                                    Detalles del evento
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-3 mt-4">
-                                <p><strong>Fecha de inicio:</strong> {new Date(selectedEvent.start).toLocaleString('es-ES')}</p>
-                                <p><strong>Fecha de finalización:</strong> {new Date(selectedEvent.end).toLocaleString('es-ES')}</p>
-                                <p><strong>ID del Cliente:</strong> {selectedEvent.extendedProps.client_id}</p>
-                                <p><strong>Categoría :</strong> {selectedEvent.extendedProps.categoria}</p>
-                                <p><strong>Creador del evento:</strong> {selectedEvent.extendedProps.creador_evento}</p>
+                        <DialogHeader className="border-b pb-4">
+                            <DialogTitle className="text-2xl font-bold text-gray-900 tracking-tight">
+                                {selectedEvent.title}
+                            </DialogTitle>
+                            
+                        </DialogHeader>
+                        <div className="p-6 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Fecha de inicio</p>
+                                    <p className="font-medium text-gray-800">
+                                        {new Date(selectedEvent.start).toLocaleString('es-ES', {
+                                            dateStyle: 'full',
+                                            timeStyle: 'short'
+                                        })}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Fecha de finalización</p>
+                                    <p className="font-medium text-gray-800">
+                                        {new Date(selectedEvent.end).toLocaleString('es-ES', {
+                                            dateStyle: 'full',
+                                            timeStyle: 'short'
+                                        })}
+                                    </p>
+                                </div>
                             </div>
-                            <DialogFooter className="mt-6 space-x-2">
-                                <button
-                                    onClick={handleEditClick}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                                >
-                                    Editar
-                                </button>
-                                <button
-                                    onClick={handleDeleteEvent}
-                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-                                >
-                                    Eliminar
-                                </button>
-                                <button
-                                    onClick={() => setIsViewModalOpen(false)}
-                                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded"
-                                >
-                                    Cerrar
-                                </button>
-                            </DialogFooter>
-                        </>
+                            <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">ID del Cliente</span>
+                                    <span className="font-semibold text-gray-800">
+                                        {selectedEvent.extendedProps.client_id}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Categoría</span>
+                                    <span className="font-semibold text-gray-800">
+                                        {selectedEvent.extendedProps.categoria}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Creador del evento</span>
+                                    <span className="font-semibold text-gray-800">
+                                        {selectedEvent.extendedProps.creador_nombre}
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 mb-2">Notas</p>
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[100px]">
+                                    <p className="text-gray-800">
+                                        {selectedEvent.extendedProps.notas || 'Sin notas adicionales'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter className="border-t pt-4 px-6 pb-6 flex justify-end space-x-3">
+                            <button
+                                onClick={handleEditClick}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300 ease-in-out shadow-md"
+                            >
+                                Editar
+                            </button>
+                            <button
+                                onClick={handleDeleteEvent}
+                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300 ease-in-out shadow-md"
+                            >
+                                Eliminar
+                            </button>
+                            <button
+                                onClick={() => setIsViewModalOpen(false)}
+                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors duration-300 ease-in-out"
+                            >
+                                Cerrar
+                            </button>
+                        </DialogFooter>
+                    </>
                     ) : (
                         <form onSubmit={handleUpdateEvent} className="space-y-4">
                             <DialogHeader>
@@ -465,7 +572,7 @@ export default function EventsCalendar() {
                                     onDrop={(files) => setEditingFile(files[0])}
                                     onDelete={() => setEditingFile(null)}
                                     className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
-                                    text="Arrastre una imagen aquí o haga click para seleccionar"
+                                    text="Arrastre una imagen o archivo aquí o haga click para seleccionar"
                                 />
                                 {editingFile && (
                                     <p className="text-sm text-gray-500 mt-1">
@@ -520,129 +627,191 @@ export default function EventsCalendar() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                <DialogContent className="max-w-[800px] w-full">
-                    <DialogHeader>
+            <Dialog 
+                open={isCreateModalOpen} 
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setNewEvent(initialNewEventState);
+                        setSelectedUsers([]);
+                        setFileUploads([{ id: 1, file: null }]);
+                        setIsCreateModalOpen(false);
+                    } else {
+                        setIsCreateModalOpen(true);
+                    }
+                }}
+            >
+                <DialogContent className="max-w-[800px] w-full max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="sticky top-0 bg-white z-10 pb-4 border-b">
                         <DialogTitle>Crear Nuevo Evento</DialogTitle>
-                        <DialogDescription>
-                            Ingrese los detalles del nuevo evento
-                        </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleCreateEvent} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Nombre del Evento</label>
-                            <input
-                                type="text"
-                                value={newEvent.nombre}
-                                onChange={(e) => setNewEvent({ ...newEvent, nombre: e.target.value })}
-                                className="w-full p-2 border rounded"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">ID del Cliente</label>
-                            <input
-                                type="number"
-                                value={newEvent.client_id}
-                                onChange={(e) => setNewEvent({ ...newEvent, client_id: parseInt(e.target.value) })}
-                                className="w-full p-2 border rounded"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <Label>Encargados</Label>
-                            <MultiSelectUsuarios 
-                                selectedUsers={selectedUsers} 
-                                onChange={setSelectedUsers} 
-                            />
-                        </div>
-                        <div>
-                            <Label>Categoría</Label>
-                            <Select 
-                                value={newEvent.categoria}
-                                onValueChange={(value) => 
-                                    setNewEvent({ ...newEvent, categoria: value })
-                                }
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Seleccionar categoría" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((category) => (
-                                        <SelectItem 
-                                            key={category.id} 
-                                            value={category.nombre}
+                    <div className="py-4">
+                        <form onSubmit={handleCreateEvent} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Nombre del Evento</label>
+                                <input
+                                    type="text"
+                                    value={newEvent.nombre}
+                                    onChange={(e) => setNewEvent({ ...newEvent, nombre: e.target.value })}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Cliente</Label>
+                                <Select
+                                    value={newEvent.client_id ? newEvent.client_id.toString() : undefined}
+                                    onValueChange={(value) => 
+                                        setNewEvent({ 
+                                            ...newEvent, 
+                                            client_id: value ? parseInt(value) : 0
+                                        })
+                                    }
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Seleccionar cliente" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {clients.map((client) => (
+                                            <SelectItem 
+                                                key={client.id} 
+                                                value={client.id.toString()}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    {client.url && (
+                                                        <img 
+                                                            src={client.url} 
+                                                            alt={client.name}
+                                                            className="w-6 h-6 rounded-full"
+                                                        />
+                                                    )}
+                                                    <span>{client.name}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label>Encargados</Label>
+                                <MultiSelectUsuarios 
+                                    selectedUsers={selectedUsers} 
+                                    onChange={setSelectedUsers} 
+                                />
+                            </div>
+                            <div>
+                                <Label>Categoría</Label>
+                                <Select 
+                                    value={newEvent.categoria}
+                                    onValueChange={(value) => 
+                                        setNewEvent({ ...newEvent, categoria: value })
+                                    }
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Seleccionar categoría" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((category) => (
+                                            <SelectItem 
+                                                key={category.id} 
+                                                value={category.nombre}
+                                            >
+                                                {category.nombre}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Notas</label>
+                                <textarea
+                                    value={newEvent.notas}
+                                    onChange={(e) => setNewEvent({ ...newEvent, notas: e.target.value })}
+                                    className="w-full p-2 border rounded"
+                                    rows={3}
+                                    required
+                                />
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <Label>Fecha de Inicio</Label>
+                                    <input
+                                        type="datetime-local"
+                                        value={newEvent.fecha_inicio}
+                                        onChange={(e) => setNewEvent({ ...newEvent, fecha_inicio: e.target.value })}
+                                        className="w-full p-2 border rounded"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <Label>Fecha de Finalización</Label>
+                                    <input
+                                        type="datetime-local"
+                                        value={newEvent.fecha_final}
+                                        onChange={(e) => setNewEvent({ ...newEvent, fecha_final: e.target.value })}
+                                        className="w-full p-2 border rounded"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                        <div className="space-y-4">
+                            <Label>Archivos</Label>
+                            {fileUploads.map((upload) => (
+                                <div key={upload.id} className="relative">
+                                    <Dropzone
+                                        onDrop={(files) => handleFileChange(upload.id, files[0])}
+                                        onDelete={() => handleFileChange(upload.id, null)}
+                                        className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
+                                        text="Arrastre una imagen o archivo aquí o haga click para seleccionar"
+                                    />
+                                    {upload.file && (
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            Archivo seleccionado: {upload.file.name}
+                                        </p>
+                                    )}
+                                    {fileUploads.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => removeFileUpload(upload.id)}
+                                            className="absolute -right-2 -top-2 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
                                         >
-                                            {category.nombre}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Notas</label>
-                            <textarea
-                                value={newEvent.notas}
-                                onChange={(e) => setNewEvent({ ...newEvent, notas: e.target.value })}
-                                className="w-full p-2 border rounded"
-                                rows={3}
-                                required
-                            />
-                        </div>
-                        <div className="flex gap-4">
-                            <div className="flex-1">
-                                <Label>Fecha de Inicio</Label>
-                                <input
-                                    type="datetime-local"
-                                    value={newEvent.fecha_inicio}
-                                    onChange={(e) => setNewEvent({ ...newEvent, fecha_inicio: e.target.value })}
-                                    className="w-full p-2 border rounded"
-                                    required
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <Label>Fecha de Finalización</Label>
-                                <input
-                                    type="datetime-local"
-                                    value={newEvent.fecha_final}
-                                    onChange={(e) => setNewEvent({ ...newEvent, fecha_final: e.target.value })}
-                                    className="w-full p-2 border rounded"
-                                    required
-                                />
-                            </div>
-                        </div>
-                      
-                        <div>
-                            <Label>Archivo</Label>
-                            <Dropzone
-                                onDrop={(files) => setFile(files[0])}
-                                onDelete={() => setFile(null)}
-                                className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
-                                text="Arrastre una imagen aquí o haga click para seleccionar"
-                            />
-                            {file && (
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Archivo seleccionado: {file.name}
-                                </p>
-                            )}
-                        </div>
-                        
-                        <DialogFooter>
-                            <button
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                            <Button
                                 type="button"
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2"
+                                variant="outline"
+                                onClick={addFileUpload}
+                                className="w-full mt-2"
                             >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                            >
-                                Crear Evento
-                            </button>
-                        </DialogFooter>
-                    </form>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Agregar otro archivo
+                            </Button>
+                        </div>
+
+                            <div className="sticky bottom-0 bg-white pt-4 border-t">
+                                <div className="flex justify-end space-x-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                            setNewEvent(initialNewEventState);
+                                            setSelectedUsers([]);
+                                            setFileUploads([{ id: 1, file: null }]);
+                                            setIsCreateModalOpen(false);
+                                        }}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button type="submit">
+                                        Crear Evento
+                                    </Button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
