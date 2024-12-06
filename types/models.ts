@@ -183,12 +183,15 @@ export type scheduleCheck = {
   export type Event = {
     id?: number;
     nombre: string;
-    client_id: number;
     fecha_inicio: Date;
     fecha_final: Date;
     categoria: string;
-    creador_evento: number;
+    creador_evento: string;
+    client_id: number;
     notas: string;
+    profiles?: {
+        full_name: string;
+    };
   }
 
 export type Events_category = {
@@ -210,4 +213,5 @@ export type Encargados = {
   usuario_id: string;
   created_at?: Date;
 }
+
 

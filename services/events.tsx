@@ -6,11 +6,26 @@ import { createClient } from "@/utils/supabase/client";
 const supabase = createClient();
 
 export const getEvents = async (): Promise<Event[]> => {
-    const { data, error } = await supabase.from('events').select('*');
-    if (error) {
-        throw new Error(error.message);
+    try {
+        const { data, error } = await supabase
+            .from('events')
+            .select(`
+                *,
+                profiles:creador_evento (
+                    full_name
+                )
+            `);
+
+        if (error) {
+            console.error('Error fetching events:', error);
+            return [];
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error:', error);
+        return [];
     }
-    return data as Event[];
 }
 
 export const createEvent = async (event: Event): Promise<Event> => {
