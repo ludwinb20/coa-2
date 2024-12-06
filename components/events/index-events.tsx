@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from '@radix-ui/react-label';
 import MultiSelectUsuarios from '../salidas/create/multi-select';
+import { Plus, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type FormattedEvent = {
     id: string;
@@ -73,6 +75,9 @@ export default function EventsCalendar() {
     const [editingFile, setEditingFile] = useState<File | null>(null);
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [categories, setCategories] = useState<Events_category[]>([]);
+    const [fileUploads, setFileUploads] = useState<Array<{ id: number, file: File | null }>>([
+        { id: 1, file: null }
+    ]);
 
     const initialNewEventState = {
         nombre: '',
@@ -158,6 +163,23 @@ export default function EventsCalendar() {
         });
     };
 
+    const addFileUpload = () => {
+        const newId = fileUploads.length + 1;
+        setFileUploads([...fileUploads, { id: newId, file: null }]);
+    };
+
+    const removeFileUpload = (id: number) => {
+        if (fileUploads.length > 1) {
+            setFileUploads(fileUploads.filter(upload => upload.id !== id));
+        }
+    };
+
+    const handleFileChange = (id: number, file: File | null) => {
+        setFileUploads(fileUploads.map(upload => 
+            upload.id === id ? { ...upload, file } : upload
+        ));
+    };
+
     const handleCreateEvent = async (e: React.FormEvent) => {
         e.preventDefault();
         const today = new Date();
@@ -202,22 +224,28 @@ export default function EventsCalendar() {
 
             await Promise.all(encargadosPromises);
 
-            if (file) {
-                const { success: fileSuccess } = await createEventFile({
-                    event_id: eventoId,
-                    file: file
+            const filesPromises = fileUploads
+                .filter(upload => upload.file !== null)
+                .map(async (upload) => {
+                    if (upload.file) {
+                        const { success } = await createEventFile({
+                            event_id: eventoId,
+                            file: upload.file
+                        });
+
+                        if (!success) {
+                            console.error(`Error al subir archivo: ${upload.file.name}`);
+                        }
+                    }
                 });
 
-                if (!fileSuccess) {
-                    console.error('Error al crear el archivo del evento');
-                }
-            }
+            await Promise.all(filesPromises);
 
             setIsCreateModalOpen(false);
             fetchEvents();
             setNewEvent(initialNewEventState);
             setSelectedUsers([]);
-            setFile(null);
+            setFileUploads([{ id: 1, file: null }]);
 
         } catch (error) {
             console.error('Error al crear evento:', error);
@@ -520,129 +548,166 @@ export default function EventsCalendar() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                <DialogContent className="max-w-[800px] w-full">
-                    <DialogHeader>
+            <Dialog 
+                open={isCreateModalOpen} 
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setNewEvent(initialNewEventState);
+                        setSelectedUsers([]);
+                        setFileUploads([{ id: 1, file: null }]);
+                        setIsCreateModalOpen(false);
+                    } else {
+                        setIsCreateModalOpen(true);
+                    }
+                }}
+            >
+                <DialogContent className="max-w-[800px] w-full max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="sticky top-0 bg-white z-10 pb-4 border-b">
                         <DialogTitle>Crear Nuevo Evento</DialogTitle>
-                        <DialogDescription>
-                            Ingrese los detalles del nuevo evento
-                        </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleCreateEvent} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Nombre del Evento</label>
-                            <input
-                                type="text"
-                                value={newEvent.nombre}
-                                onChange={(e) => setNewEvent({ ...newEvent, nombre: e.target.value })}
-                                className="w-full p-2 border rounded"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">ID del Cliente</label>
-                            <input
-                                type="number"
-                                value={newEvent.client_id}
-                                onChange={(e) => setNewEvent({ ...newEvent, client_id: parseInt(e.target.value) })}
-                                className="w-full p-2 border rounded"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <Label>Encargados</Label>
-                            <MultiSelectUsuarios 
-                                selectedUsers={selectedUsers} 
-                                onChange={setSelectedUsers} 
-                            />
-                        </div>
-                        <div>
-                            <Label>Categoría</Label>
-                            <Select 
-                                value={newEvent.categoria}
-                                onValueChange={(value) => 
-                                    setNewEvent({ ...newEvent, categoria: value })
-                                }
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Seleccionar categoría" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((category) => (
-                                        <SelectItem 
-                                            key={category.id} 
-                                            value={category.nombre}
+                    <div className="py-4">
+                        <form onSubmit={handleCreateEvent} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Nombre del Evento</label>
+                                <input
+                                    type="text"
+                                    value={newEvent.nombre}
+                                    onChange={(e) => setNewEvent({ ...newEvent, nombre: e.target.value })}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">ID del Cliente</label>
+                                <input
+                                    type="number"
+                                    value={newEvent.client_id}
+                                    onChange={(e) => setNewEvent({ ...newEvent, client_id: parseInt(e.target.value) })}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <Label>Encargados</Label>
+                                <MultiSelectUsuarios 
+                                    selectedUsers={selectedUsers} 
+                                    onChange={setSelectedUsers} 
+                                />
+                            </div>
+                            <div>
+                                <Label>Categoría</Label>
+                                <Select 
+                                    value={newEvent.categoria}
+                                    onValueChange={(value) => 
+                                        setNewEvent({ ...newEvent, categoria: value })
+                                    }
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Seleccionar categoría" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((category) => (
+                                            <SelectItem 
+                                                key={category.id} 
+                                                value={category.nombre}
+                                            >
+                                                {category.nombre}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Notas</label>
+                                <textarea
+                                    value={newEvent.notas}
+                                    onChange={(e) => setNewEvent({ ...newEvent, notas: e.target.value })}
+                                    className="w-full p-2 border rounded"
+                                    rows={3}
+                                    required
+                                />
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <Label>Fecha de Inicio</Label>
+                                    <input
+                                        type="datetime-local"
+                                        value={newEvent.fecha_inicio}
+                                        onChange={(e) => setNewEvent({ ...newEvent, fecha_inicio: e.target.value })}
+                                        className="w-full p-2 border rounded"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <Label>Fecha de Finalización</Label>
+                                    <input
+                                        type="datetime-local"
+                                        value={newEvent.fecha_final}
+                                        onChange={(e) => setNewEvent({ ...newEvent, fecha_final: e.target.value })}
+                                        className="w-full p-2 border rounded"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                        <div className="space-y-4">
+                            <Label>Archivos</Label>
+                            {fileUploads.map((upload) => (
+                                <div key={upload.id} className="relative">
+                                    <Dropzone
+                                        onDrop={(files) => handleFileChange(upload.id, files[0])}
+                                        onDelete={() => handleFileChange(upload.id, null)}
+                                        className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
+                                        text="Arrastre una imagen aquí o haga click para seleccionar"
+                                    />
+                                    {upload.file && (
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            Archivo seleccionado: {upload.file.name}
+                                        </p>
+                                    )}
+                                    {fileUploads.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => removeFileUpload(upload.id)}
+                                            className="absolute -right-2 -top-2 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
                                         >
-                                            {category.nombre}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Notas</label>
-                            <textarea
-                                value={newEvent.notas}
-                                onChange={(e) => setNewEvent({ ...newEvent, notas: e.target.value })}
-                                className="w-full p-2 border rounded"
-                                rows={3}
-                                required
-                            />
-                        </div>
-                        <div className="flex gap-4">
-                            <div className="flex-1">
-                                <Label>Fecha de Inicio</Label>
-                                <input
-                                    type="datetime-local"
-                                    value={newEvent.fecha_inicio}
-                                    onChange={(e) => setNewEvent({ ...newEvent, fecha_inicio: e.target.value })}
-                                    className="w-full p-2 border rounded"
-                                    required
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <Label>Fecha de Finalización</Label>
-                                <input
-                                    type="datetime-local"
-                                    value={newEvent.fecha_final}
-                                    onChange={(e) => setNewEvent({ ...newEvent, fecha_final: e.target.value })}
-                                    className="w-full p-2 border rounded"
-                                    required
-                                />
-                            </div>
-                        </div>
-                      
-                        <div>
-                            <Label>Archivo</Label>
-                            <Dropzone
-                                onDrop={(files) => setFile(files[0])}
-                                onDelete={() => setFile(null)}
-                                className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
-                                text="Arrastre una imagen aquí o haga click para seleccionar"
-                            />
-                            {file && (
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Archivo seleccionado: {file.name}
-                                </p>
-                            )}
-                        </div>
-                        
-                        <DialogFooter>
-                            <button
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                            <Button
                                 type="button"
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2"
+                                variant="outline"
+                                onClick={addFileUpload}
+                                className="w-full mt-2"
                             >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                            >
-                                Crear Evento
-                            </button>
-                        </DialogFooter>
-                    </form>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Agregar otro archivo
+                            </Button>
+                        </div>
+
+                            <div className="sticky bottom-0 bg-white pt-4 border-t">
+                                <div className="flex justify-end space-x-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                            setNewEvent(initialNewEventState);
+                                            setSelectedUsers([]);
+                                            setFileUploads([{ id: 1, file: null }]);
+                                            setIsCreateModalOpen(false);
+                                        }}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button type="submit">
+                                        Crear Evento
+                                    </Button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

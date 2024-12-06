@@ -30,7 +30,7 @@ export const createEvent = async (event: Event): Promise<Event> => {
 
 export const updateEvent = async (event: Event, file?: File | null): Promise<Event> => {
     try {
-        // 1. Primero actualizamos el evento
+        
         const { data: updatedEvent, error: eventError } = await supabase
             .from('events')
             .update(event)
@@ -42,7 +42,7 @@ export const updateEvent = async (event: Event, file?: File | null): Promise<Eve
             throw new Error(eventError.message);
         }
 
-        // 2. Si hay un nuevo archivo, lo manejamos
+      
         if (file) {
             let uploadedFile: string | null = null;
             const result = await uploadFile({
@@ -54,7 +54,7 @@ export const updateEvent = async (event: Event, file?: File | null): Promise<Eve
             if (result.success) {
                 uploadedFile = result.data;
                 
-                // Crear nuevo registro en events_files
+            
                 const { error: fileError } = await supabase
                     .from('events_files')
                     .insert([{
@@ -175,7 +175,7 @@ export const deleteCategoryEvents = async (id: number): Promise<void> => {
 
 export const createEncargados = async (encargado: Encargados): Promise<{ success: boolean; data?: Encargados }> => {
     try {
-        // Asegurarnos de que los IDs sean números
+       
         const encargadoData = {
             evento_id: Number(encargado.evento_id),
             usuario_id: encargado.usuario_id
