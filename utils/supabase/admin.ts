@@ -136,9 +136,11 @@ export async function makeScheduleCheck({
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
+      timeZone: "America/Tegucigalpa"
     };
   
      profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
+     profile.type = "in";
      console.log(profile);
       return { success: true, data: profile };
     }
@@ -212,9 +214,11 @@ export async function makeScheduleCheck({
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
+    timeZone: "America/Tegucigalpa"
   };
 
    profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
+   profile.type = "out";
    console.log(profile);
     return { success: true, data: profile };
   } catch (error) {
