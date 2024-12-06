@@ -1,4 +1,4 @@
-import { Payroll, scheduleCheck } from '@/types/models';
+import { Payroll, Profile, scheduleCheck, UserProfile } from '@/types/models';
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from "uuid";
 const admin = createServiceRoleClient();
@@ -54,7 +54,7 @@ export async function makeScheduleCheck({
 }: {
   id: string;
   file: File;
-}): Promise<{ success: boolean; data?: scheduleCheck }> {
+}): Promise<{ success: boolean; data?: UserProfile }> {
   try {
     const result = await uploadFile({
       bucket: "punchs",
@@ -98,16 +98,53 @@ export async function makeScheduleCheck({
       console.error("Error fetching current punch:", currentPunchError.message);
       return { success: false };
     }
+    const fechaActual = new Date();
 
     // Crear un nuevo registro si no existe entrada activa
     if (!currentPunch || currentPunch.length === 0) {
       const newPunch = await createNewPunch(payroll.id, id, uploadedFile ?? "");
-      return newPunch;
+      const { data: profiles, error: profileError } = await admin
+      .from("profiles")
+      .select("*")
+      .eq("id", id)
+      .limit(1);
+    
+    if (profileError) {
+      console.error("Error fetching profile:", profileError.message);
+      return { success: false };
+    }
+    
+    if (!profiles || profiles.length === 0) {
+      console.error("No profile data returned after update.");
+      return { success: false };
+    }
+    
+    const profile = profiles[0];
+    
+    if (profile.avatar_url) {
+      const { data: signedUrlData, error: signedUrlError } = await admin.storage
+        .from("avatars")
+        .createSignedUrl(`users/${profile.avatar_url}`, 3600);
+    
+      if (signedUrlError) {
+        console.error("Error generating signed URL:", signedUrlError.message);
+      }else{
+        profile.url = signedUrlData.signedUrl;
+      }
+    }
+    const opciones: Intl.DateTimeFormatOptions = {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    };
+  
+     profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
+     console.log(profile);
+      return { success: true, data: profile };
     }
 
     const entrada = currentPunch[0].in;
 
-    const fechaActual = new Date();
     if (!entrada) {
       console.error("El campo 'in' no está disponible o es nulo.");
       return { success: false };
