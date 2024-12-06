@@ -5,7 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { Encargados, Event as EventType } from '@/types/models';
-import { getEvents, createEvent, updateEvent, deleteEvent, createEventFile, createEncargados, getEncargados } from '@/services/events';
+import { getEvents, createEvent, updateEvent, deleteEvent, createEventFile, createEncargados, getEncargados, getEventFiles } from '@/services/events';
 import Dropzone from '@/components/ui/dropzone';
 import { getCategories } from '@/services/events';
 import { Events_category } from '@/types/models';
@@ -27,12 +27,20 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from '@radix-ui/react-label';
 import MultiSelectUsuarios from '../salidas/create/multi-select';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getClients } from '@/services/clients';
 import { Client } from '@/types/models';
 import { useSession } from '@/app/session-provider';
 import { toast } from 'sonner';
+import { DocumentIcon } from '@/icons/icons';
+
+interface EventFile {
+    id: number;
+    url: string;
+    name: string;
+    type: string;
+}
 
 type FormattedEvent = {
     id: string;
@@ -53,6 +61,7 @@ type FormattedEvent = {
         };
         notas: string;
         fecha_final: Date;
+        files?: EventFile[];
     };
 }
 
@@ -165,18 +174,31 @@ export default function EventsCalendar() {
             console.error('Event ID is undefined');
             return;
         }
-        const event = events.find(e => e.id === eventId);
-        if (event) {
-            try {
-                const encargados = await getEncargados(parseInt(eventId));
+
+        try {
+            const [encargados, eventFiles] = await Promise.all([
+                getEncargados(parseInt(eventId)),
+                getEventFiles(parseInt(eventId))
+            ]);
+
+            console.log('Loaded files:', eventFiles);
+
+            const event = events.find(e => e.id === eventId);
+            if (event) {
                 setEventEncargados(encargados);
-            } catch (error) {
-                console.error('Error al cargar encargados:', error);
-                setEventEncargados([]);
+                setSelectedEvent({
+                    ...event,
+                    extendedProps: {
+                        ...event.extendedProps,
+                        files: eventFiles
+                    }
+                });
+                setIsViewModalOpen(true);
+                setIsCreateModalOpen(false);
             }
-            setSelectedEvent(event);
-            setIsViewModalOpen(true);
-            setIsCreateModalOpen(false);
+        } catch (error) {
+            console.error('Error loading event details:', error);
+            setEventEncargados([]);
         }
     };
 
@@ -436,254 +458,312 @@ export default function EventsCalendar() {
                     }
                 }}
             >
-                <DialogContent className="max-w-[800px] w-full">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {isEditing ? "Editar Evento" : "Detalles del Evento"}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {isEditing ? "Modifique los detalles del evento" : "Información del evento"}
-                        </DialogDescription>
+                <DialogContent className="max-w-[800px] w-full max-h-[90vh] overflow-y-auto scrollbar-custom">
+                    <DialogHeader className="sticky top-0 bg-white z-10 pb-4 border-b">
+                        <DialogTitle>Detalles del Evento</DialogTitle>
                     </DialogHeader>
-                    {selectedEvent && !isEditing ? (
-                        <>
-                        <DialogHeader className="border-b pb-4">
-                            <DialogTitle className="text-2xl font-bold text-gray-900 tracking-tight">
-                                {selectedEvent.title}
-                            </DialogTitle>
-                            
-                        </DialogHeader>
-                        <div className="p-6 space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Fecha de inicio</p>
-                                    <p className="font-medium text-gray-800">
-                                        {new Date(selectedEvent.start).toLocaleString('es-ES', {
-                                            dateStyle: 'full',
-                                            timeStyle: 'short'
-                                        })}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Fecha de finalización</p>
-                                    <p className="font-medium text-gray-800">
-                                        {new Date(selectedEvent.end).toLocaleString('es-ES', {
-                                            dateStyle: 'full',
-                                            timeStyle: 'short'
-                                        })}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-600">Cliente</span>
-                                    <div className="flex items-center gap-2">
-                                        {selectedEvent.extendedProps.clients?.url && (
-                                            <img 
-                                                src={selectedEvent.extendedProps.clients.url}
-                                                alt={selectedEvent.extendedProps.clients.name}
-                                                className="w-8 h-8 rounded-full object-cover"
-                                            />
-                                        )}
-                                        <span className="font-semibold text-gray-800">
-                                            {selectedEvent.extendedProps.clients?.name || 'Sin cliente asignado'}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Categoría</span>
-                                    <span className="font-semibold text-gray-800">
-                                        {selectedEvent.extendedProps.categoria}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Creador del evento</span>
-                                    <span className="font-semibold text-gray-800">
-                                        {selectedEvent.extendedProps.creador_nombre}
-                                    </span>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-2">Notas</p>
-                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[100px]">
-                                    <p className="text-gray-800">
-                                        {selectedEvent.extendedProps.notas || 'Sin notas adicionales'}
-                                    </p>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-2">Encargados</p>
-                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                  
-                                    {eventEncargados && eventEncargados.length > 0 ? (
-                                        <div className="space-y-2">
-                                            {eventEncargados.map((encargado) => (
-                                                <div 
-                                                    key={encargado.id} 
-                                                    className="flex items-center gap-2 p-2 bg-white rounded-md shadow-sm"
-                                                >
-                                                    {encargado.profiles?.url ? (
+                    {selectedEvent && (
+                        <div className="space-y-6 py-4">
+                            {!isEditing ? (
+                                <>
+                                    <DialogHeader className="border-b pb-4">
+                                        <DialogTitle className="text-2xl font-bold text-gray-900 tracking-tight">
+                                            {selectedEvent.title}
+                                        </DialogTitle>
+                                        
+                                    </DialogHeader>
+                                    <div className="p-6 space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-sm text-gray-500 mb-1">Fecha de inicio</p>
+                                                <p className="font-medium text-gray-800">
+                                                    {new Date(selectedEvent.start).toLocaleString('es-ES', {
+                                                        dateStyle: 'full',
+                                                        timeStyle: 'short'
+                                                    })}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500 mb-1">Fecha de finalización</p>
+                                                <p className="font-medium text-gray-800">
+                                                    {new Date(selectedEvent.end).toLocaleString('es-ES', {
+                                                        dateStyle: 'full',
+                                                        timeStyle: 'short'
+                                                    })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-600">Cliente</span>
+                                                <div className="flex items-center gap-2">
+                                                    {selectedEvent.extendedProps.clients?.url && (
                                                         <img 
-                                                            src={encargado.profiles.url}
-                                                            alt={encargado.profiles.full_name}
-                                                            className="w-12 h-12 rounded-full object-cover"
+                                                            src={selectedEvent.extendedProps.clients.url}
+                                                            alt={selectedEvent.extendedProps.clients.name}
+                                                            className="w-8 h-8 rounded-full object-cover"
                                                         />
-                                                    ) : (
-                                                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                                                            <span className="text-gray-500 text-sm">
-                                                                {encargado.profiles?.full_name?.charAt(0) || '?'}
-                                                            </span>
-                                                        </div>
                                                     )}
-                                                    <span className="text-gray-800 text-base">
-                                                        {encargado.profiles?.full_name || 'Usuario Desconocido'}
+                                                    <span className="font-semibold text-gray-800">
+                                                        {selectedEvent.extendedProps.clients?.name || 'Sin cliente asignado'}
                                                     </span>
                                                 </div>
-                                            ))}
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-sm text-gray-600">Categoría</span>
+                                                <span className="font-semibold text-gray-800">
+                                                    {selectedEvent.extendedProps.categoria}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-sm text-gray-600">Creador del evento</span>
+                                                <span className="font-semibold text-gray-800">
+                                                    {selectedEvent.extendedProps.creador_nombre}
+                                                </span>
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <p className="text-gray-500 text-sm">No hay encargados asignados</p>
-                                    )}
-                                </div>
-                            </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500 mb-2">Notas</p>
+                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[100px]">
+                                                <p className="text-gray-800">
+                                                    {selectedEvent.extendedProps.notas || 'Sin notas adicionales'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500 mb-2">Encargados</p>
+                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                              
+                                                {eventEncargados && eventEncargados.length > 0 ? (
+                                                    <div className="space-y-2">
+                                                        {eventEncargados.map((encargado) => (
+                                                            <div 
+                                                                key={encargado.id} 
+                                                                className="flex items-center gap-2 p-2 bg-white rounded-md shadow-sm"
+                                                            >
+                                                                {encargado.profiles?.url ? (
+                                                                    <img 
+                                                                        src={encargado.profiles.url}
+                                                                        alt={encargado.profiles.full_name}
+                                                                        className="w-12 h-12 rounded-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                                                                        <span className="text-gray-500 text-sm">
+                                                                            {encargado.profiles?.full_name?.charAt(0) || '?'}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                                <span className="text-gray-800 text-base">
+                                                                    {encargado.profiles?.full_name || 'Usuario Desconocido'}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-gray-500 text-sm">No hay encargados asignados</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500 mb-2">Archivos adjuntos</p>
+                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                                {selectedEvent?.extendedProps?.files && selectedEvent.extendedProps.files.length > 0 ? (
+                                                    <div className="space-y-2">
+                                                        {Array.from(new Set(selectedEvent.extendedProps.files.map(f => f.id))).map(fileId => {
+                                                            const file = selectedEvent.extendedProps.files?.find(f => f.id === fileId);
+                                                            if (!file) return null;
+                                                            
+                                                            const isImage = file.type === 'png' || file.type === 'jpg' || file.type === 'jpeg';
+                                                            
+                                                            return (
+                                                                <div 
+                                                                    key={file.id} 
+                                                                    className="flex items-center justify-between p-3 bg-white rounded-md shadow-sm hover:bg-gray-50 transition-colors"
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded">
+                                                                            {isImage ? (
+                                                                                <img 
+                                                                                    src={file.url} 
+                                                                                    alt={file.name}
+                                                                                    className="w-10 h-10 rounded object-cover"
+                                                                                />
+                                                                            ) : (
+                                                                                <DocumentIcon className="w-6 h-6 text-gray-500" />
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-sm font-medium text-gray-700">
+                                                                                {file.name}
+                                                                            </span>
+                                                                            <span className="text-xs text-gray-500">
+                                                                                {file.type.toUpperCase()}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <a
+                                                                        href={file.url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 
+                                                                                 hover:bg-blue-50 rounded transition-colors"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                        }}
+                                                                    >
+                                                                        Ver
+                                                                    </a>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-gray-500 text-sm text-center py-4">
+                                                        No hay archivos adjuntos
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <DialogFooter className="border-t pt-4 px-6 pb-6 flex justify-end space-x-3">
+                                        <button
+                                            onClick={handleEditClick}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300 ease-in-out shadow-md"
+                                        >
+                                            Editar
+                                        </button>
+                                        <button
+                                            onClick={handleDeleteEvent}
+                                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300 ease-in-out shadow-md"
+                                        >
+                                            Eliminar
+                                        </button>
+                                        <button
+                                            onClick={() => setIsViewModalOpen(false)}
+                                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors duration-300 ease-in-out"
+                                        >
+                                            Cerrar
+                                        </button>
+                                    </DialogFooter>
+                                </>
+                            ) : (
+                                <form onSubmit={handleUpdateEvent} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Nombre del Evento</label>
+                                        <input
+                                            type="text"
+                                            value={editingEvent.nombre}
+                                            onChange={(e) => setEditingEvent({ ...editingEvent, nombre: e.target.value })}
+                                            className="w-full p-2 border rounded"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Cliente</Label>
+                                        <Select
+                                            value={editingEvent.client_id ? editingEvent.client_id.toString() : undefined}
+                                            onValueChange={(value) => 
+                                                setEditingEvent({ 
+                                                    ...editingEvent, 
+                                                    client_id: value ? parseInt(value) : 0
+                                                })
+                                            }
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Seleccionar cliente" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {clients.map((client) => (
+                                                    <SelectItem 
+                                                        key={client.id} 
+                                                        value={client.id.toString()}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            {client.url && (
+                                                                <img 
+                                                                    src={client.url} 
+                                                                    alt={client.name}
+                                                                    className="w-6 h-6 rounded-full"
+                                                                />
+                                                            )}
+                                                            <span>{client.name}</span>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label>Categoría</Label>
+                                        <Select 
+                                            value={editingEvent.categoria}
+                                            onValueChange={(value) => 
+                                                setEditingEvent({ ...editingEvent, categoria: value })
+                                            }
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Seleccionar categoría" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {categories.map((category) => (
+                                                    <SelectItem 
+                                                        key={category.id} 
+                                                        value={category.nombre}
+                                                    >
+                                                        {category.nombre}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Notas</label>
+                                        <textarea
+                                            value={editingEvent.notas}
+                                            onChange={(e) => setEditingEvent({ ...editingEvent, notas: e.target.value })}
+                                            className="w-full p-2 border rounded"
+                                            rows={3}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <Label>Fecha de Inicio</Label>
+                                            <input
+                                                type="datetime-local"
+                                                value={editingEvent.fecha_inicio}
+                                                onChange={(e) => setEditingEvent({ ...editingEvent, fecha_inicio: e.target.value })}
+                                                className="w-full p-2 border rounded"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <Label>Fecha de Finalización</Label>
+                                            <input
+                                                type="datetime-local"
+                                                value={editingEvent.fecha_final}
+                                                onChange={(e) => setEditingEvent({ ...editingEvent, fecha_final: e.target.value })}
+                                                className="w-full p-2 border rounded"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <DialogFooter className="border-t pt-4">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setIsEditing(false)}
+                                        >
+                                            Cancelar
+                                        </Button>
+                                        <Button type="submit">
+                                            Guardar Cambios
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            )}
                         </div>
-                        <DialogFooter className="border-t pt-4 px-6 pb-6 flex justify-end space-x-3">
-                            <button
-                                onClick={handleEditClick}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300 ease-in-out shadow-md"
-                            >
-                                Editar
-                            </button>
-                            <button
-                                onClick={handleDeleteEvent}
-                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300 ease-in-out shadow-md"
-                            >
-                                Eliminar
-                            </button>
-                            <button
-                                onClick={() => setIsViewModalOpen(false)}
-                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors duration-300 ease-in-out"
-                            >
-                                Cerrar
-                            </button>
-                        </DialogFooter>
-                    </>
-                    ) : (
-                        <form onSubmit={handleUpdateEvent} className="space-y-4">
-                            <DialogHeader>
-                                <DialogTitle className="text-xl font-semibold dark:text-gray-100">Editar Evento</DialogTitle>
-                                <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
-                                    Modifica los detalles del evento
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-200">Nombre del Evento</label>
-                                <input
-                                    type="text"
-                                    value={editingEvent.nombre}
-                                    onChange={(e) => setEditingEvent({ ...editingEvent, nombre: e.target.value })}
-                                    className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 
-                                             dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 
-                                             focus:border-transparent"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-200">ID del Cliente</label>
-                                <input
-                                    type="number"
-                                    value={editingEvent.client_id}
-                                    onChange={(e) => setEditingEvent({ ...editingEvent, client_id: parseInt(e.target.value) })}
-                                    className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 
-                                             dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 
-                                             focus:border-transparent"
-                                    required
-                                />
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <Label>Fecha de Inicio</Label>
-                                    <input
-                                        type="datetime-local"
-                                        value={editingEvent.fecha_inicio}
-                                        onChange={(e) => setEditingEvent({ ...editingEvent, fecha_inicio: e.target.value })}
-                                        className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 
-                                                 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 
-                                                 focus:border-transparent"
-                                        required
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <Label>Fecha de Finalización</Label>
-                                    <input
-                                        type="datetime-local"
-                                        value={editingEvent.fecha_final}
-                                        onChange={(e) => setEditingEvent({ ...editingEvent, fecha_final: e.target.value })}
-                                        className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 
-                                                 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 
-                                                 focus:border-transparent"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <Label>Categoría</Label>
-                                <Select 
-                                    value={editingEvent.categoria}
-                                    onValueChange={(value) => 
-                                        setEditingEvent({ ...editingEvent, categoria: value })
-                                    }
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Seleccionar categoría" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map((category) => (
-                                            <SelectItem 
-                                                key={category.id} 
-                                                value={category.nombre}
-                                            >
-                                                {category.nombre}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>Archivo</Label>
-                                <Dropzone
-                                    onDrop={(files) => setEditingFile(files[0])}
-                                    onDelete={() => setEditingFile(null)}
-                                    className="bg-blue-100 border-2 border-dotted border-gray-300 rounded-lg py-4 px-6 text-center text-xs"
-                                    text="Arrastre una imagen o archivo aquí o haga click para seleccionar"
-                                />
-                                {editingFile && (
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        Archivo seleccionado: {editingFile.name}
-                                    </p>
-                                )}
-                            </div>
-                            
-                            <DialogFooter className="space-x-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditing(false)}
-                                    className="px-4 py-2 rounded text-gray-700 bg-gray-200 hover:bg-gray-300 
-                                             dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 
-                                             transition-colors duration-200"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 rounded text-white bg-blue-500 hover:bg-blue-600 
-                                             dark:bg-blue-600 dark:hover:bg-blue-700 
-                                             transition-colors duration-200"
-                                >
-                                    Guardar Cambios
-                                </button>
-                            </DialogFooter>
-                        </form>
                     )}
                 </DialogContent>
             </Dialog>
