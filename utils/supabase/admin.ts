@@ -261,7 +261,7 @@ export async function makeScheduleCheck({
       return { success: false, code: 105 };
     }
 
-    if(currentPunch[0].lunch_out !== null){
+    if(currentPunch[0].out !== null){
       return { success: false, code: 107 };
     }
 
