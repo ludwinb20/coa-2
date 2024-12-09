@@ -131,8 +131,8 @@ export async function makeScheduleCheck({
       .select("*")
       .eq("payroll_id", payroll.id)
       .eq("user_id", id)
-      .gte("created_at", new Date().toISOString().split("T")[0]) // Fecha de inicio del día actual
-      .lt("created_at", new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]) // Inicio del siguiente día
+      .gte("created_at", new Date().toISOString().split("T")[0])
+      .lt("created_at", new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0])
       .limit(1);
 
       if (currentPunchError) {
@@ -195,7 +195,7 @@ export async function makeScheduleCheck({
       }
 
       if (!currentPunch || currentPunch.length === 0) {
-        return { success: true, code: 102 };
+        return { success: false, code: 102 };
       }
 
       if(!currentPunch[0].lunch_out){
@@ -254,7 +254,7 @@ export async function makeScheduleCheck({
     }
 
     if (!currentPunch || currentPunch.length === 0) {
-      return { success: true, code: 102 };
+      return { success: false, code: 102 };
     }
 
     if(currentPunch[0].lunch_out !== null && !currentPunch[0].lunch_in){
