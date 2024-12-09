@@ -8,7 +8,6 @@ const supabase = createClient();
 
 export const getEvents = async (): Promise<Event[]> => {
     try {
-        // Primero obtenemos los eventos con sus relaciones básicas
         const { data: events, error } = await supabase
             .from('events')
             .select(`
@@ -20,6 +19,9 @@ export const getEvents = async (): Promise<Event[]> => {
                     id,
                     name,
                     file
+                ),
+                campo (
+                    *
                 )
             `);
 
@@ -28,13 +30,13 @@ export const getEvents = async (): Promise<Event[]> => {
             return [];
         }
 
-        // Ahora procesamos los eventos para incluir las URLs de los clientes
         const eventsWithClientUrls = await Promise.all(
             (events || []).map(async (event) => {
                 if (!event.clients?.file) {
                     return {
                         ...event,
-                        clients: event.clients ? { ...event.clients, url: null } : null
+                        clients: event.clients ? { ...event.clients, url: null } : null,
+                        campo: event.campo || null
                     };
                 }
 
@@ -46,7 +48,8 @@ export const getEvents = async (): Promise<Event[]> => {
                     console.error(`Error creando URL firmada para el archivo ${event.clients.file}:`, signedUrlError?.message);
                     return {
                         ...event,
-                        clients: { ...event.clients, url: null }
+                        clients: { ...event.clients, url: null },
+                        campo: event.campo || null
                     };
                 }
 
@@ -55,7 +58,8 @@ export const getEvents = async (): Promise<Event[]> => {
                     clients: {
                         ...event.clients,
                         url: signedUrlData.signedUrl
-                    }
+                    },
+                    campo: event.campo || null
                 };
             })
         );

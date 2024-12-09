@@ -62,6 +62,7 @@ type FormattedEvent = {
         notas: string;
         fecha_final: Date;
         files?: EventFile[];
+        campo?: { id: number }[] | { id: number };
     };
 }
 
@@ -80,7 +81,7 @@ export default function EventsCalendar() {
         creador_evento: '',
         client_id: 0,
         notas: '',
-        });
+    });
     const [isEditing, setIsEditing] = useState(false);
     const [editingEvent, setEditingEvent] = useState({
         nombre: '',
@@ -135,7 +136,8 @@ export default function EventsCalendar() {
                     client_id: event.client_id,
                     clients: event.clients,
                     notas: event.notas,
-                    fecha_final: new Date(event.fecha_final)
+                    fecha_final: new Date(event.fecha_final),
+                    campo: event.campo
                 }
             }));
             setEvents(formattedEvents);
@@ -183,6 +185,7 @@ export default function EventsCalendar() {
             ]);
 
             console.log('Loaded files:', eventFiles);
+            
 
             const event = events.find(e => e.id === eventId);
             if (event) {
@@ -539,6 +542,16 @@ export default function EventsCalendar() {
                                                     {selectedEvent.extendedProps.creador_nombre}
                                                 </span>
                                             </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-sm text-gray-600">ID Campo Asociado</span>
+                                                <span className="font-semibold text-gray-800">
+                                                    {Array.isArray(selectedEvent.extendedProps.campo)
+                                                        ? selectedEvent.extendedProps.campo.length > 0
+                                                            ? selectedEvent.extendedProps.campo[0].id
+                                                            : 'No'
+                                                        : selectedEvent.extendedProps.campo?.id ?? 'No'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 mb-2">Notas</p>
@@ -838,7 +851,7 @@ export default function EventsCalendar() {
                                                                                 }
                                                                             }
                                                                         }}
-                                                                        className="absolute top-0 right-0 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
+                                                                        className="absolute -right-2 -top-2 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
                                                                     >
                                                                         <X className="h-4 w-4" />
                                                                     </button>

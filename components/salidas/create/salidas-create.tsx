@@ -30,6 +30,8 @@ import { Asset } from "@/types/asset";
 import { getAsset } from "@/services/asset";
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import ScrollAssets from './scroll-assets';
+import SelectEvents from "./select-events";
+
 
 interface AssetAssignment {
   asset_id: string;
@@ -40,7 +42,7 @@ const SalidasCreate = () => {
   const [saving, setSaving] = useState<boolean>(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const[assets,setAssets]=useState<Asset[]>([])
+  const [assets, setAssets] = useState<Asset[]>([]);
   const { user } = useSession();
   const [assetAssignments, setAssetAssignments] = useState<AssetAssignment[]>([]);
 
@@ -81,6 +83,9 @@ const SalidasCreate = () => {
     assets_ids: z.array(z.string(), {
       required_error: "Al menos un asset es requerido",
     }).min(1, "Seleccione al menos un asset"),
+    evento_id: z.number({
+      required_error: "El ID del evento es requerido",
+    }).min(1, "Seleccione un evento válido"),
   }).refine((data) => data.fecha_inicio < data.fecha_final, {
     message: "La fecha final debe ser posterior a la fecha de inicio",
     path: ["fecha_final"],
@@ -197,7 +202,20 @@ const SalidasCreate = () => {
                 )}
               />
 
-             
+              <FormField
+                control={form.control}
+                name="evento_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Evento</FormLabel>
+                    <SelectEvents
+                      onChange={(value) => field.onChange(value)}
+                    />
+                    <FormDescription>Seleccione el evento asociado.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
