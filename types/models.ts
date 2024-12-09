@@ -54,9 +54,10 @@ export type Category = {
 export type Client = {
   id: number;
   name: string;
-  rtn: string;
-  created_at: string;
-  file: string | null;
+  rtn?: string;
+  company_id?: number;
+  active?: boolean;
+  file?: string;
   url?: string | null;
 };
 
@@ -192,6 +193,12 @@ export type scheduleCheck = {
     profiles?: {
         full_name: string;
     };
+    clients?: {
+        id: number;
+        name: string;
+        file?: string;
+        url?: string | null;
+    };
   }
 
 export type Events_category = {
@@ -211,7 +218,18 @@ export type Encargados = {
   id?: number;
   evento_id: number;
   usuario_id: string;
-  created_at?: Date;
-}
+  profiles?: {
+      id: string;
+      full_name: string;
+      avatar_url?: string;
+      url?: string | null;
+  };
+};
 
+interface EventFile {
+  id: number;
+  url: string;
+  name: string;
+  type: string;
+}
 
