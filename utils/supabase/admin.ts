@@ -144,11 +144,11 @@ export async function makeScheduleCheck({
         return { success: true, code: 102 };
       }
 
-      if(currentPunch[0].out_lunch){
+      if(currentPunch[0].out_lunch !== null){
         return { success: false, code: 106 };
       }
 
-      if(currentPunch[0].out){
+      if(currentPunch[0].out !== null){
         return { success: false, code: 107 };
       }
 
@@ -202,11 +202,11 @@ export async function makeScheduleCheck({
         return { success: false, code: 103 };
       }
 
-      if(currentPunch[0].in_lunch){
+      if(currentPunch[0].in_lunch !== null){
         return { success: false, code: 104 };
       }
 
-      if(currentPunch[0].out){
+      if(currentPunch[0].out !== null){
         return { success: false, code: 107 };
       }
 
@@ -257,11 +257,11 @@ export async function makeScheduleCheck({
       return { success: true, code: 102 };
     }
 
-    if(currentPunch[0].out_lunch && !currentPunch[0].in_lunch){
+    if(currentPunch[0].out_lunch !== null && !currentPunch[0].in_lunch !== null){
       return { success: false, code: 105 };
     }
 
-    if(currentPunch[0].out){
+    if(currentPunch[0].out !== null){
       return { success: false, code: 107 };
     }
 
