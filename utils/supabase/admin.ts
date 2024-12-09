@@ -144,7 +144,7 @@ export async function makeScheduleCheck({
         return { success: true, code: 102 };
       }
 
-      if(currentPunch[0].out_lunch !== null){
+      if(currentPunch[0].lunch_out !== null){
         return { success: false, code: 106 };
       }
 
@@ -155,8 +155,8 @@ export async function makeScheduleCheck({
       const { data: updatedPunch, error: updateError } = await admin
       .from("schedule-checks")
       .update({
-        out_lunch: fechaActual,
-        out_lunch_photo: uploadedFile
+        lunch_out: fechaActual,
+        photo_lunch_out: uploadedFile
       })
       .eq("id", currentPunch[0].id)
       .select("*");
@@ -198,11 +198,11 @@ export async function makeScheduleCheck({
         return { success: true, code: 102 };
       }
 
-      if(!currentPunch[0].out_lunch){
+      if(!currentPunch[0].lunch_out){
         return { success: false, code: 103 };
       }
 
-      if(currentPunch[0].in_lunch !== null){
+      if(currentPunch[0].lunch_in !== null){
         return { success: false, code: 104 };
       }
 
@@ -213,8 +213,8 @@ export async function makeScheduleCheck({
       const { data: updatedPunch, error: updateError } = await admin
       .from("schedule-checks")
       .update({
-        in_lunch: fechaActual,
-        in_lunch_photo: uploadedFile
+        lunch_in: fechaActual,
+        photo_lunch_in: uploadedFile
       })
       .eq("id", currentPunch[0].id)
       .select("*");
@@ -257,11 +257,11 @@ export async function makeScheduleCheck({
       return { success: true, code: 102 };
     }
 
-    if(currentPunch[0].out_lunch !== null && !currentPunch[0].in_lunch !== null){
+    if(currentPunch[0].lunch_out !== null && !currentPunch[0].lunch_in !== null){
       return { success: false, code: 105 };
     }
 
-    if(currentPunch[0].out !== null){
+    if(currentPunch[0].lunch_out !== null){
       return { success: false, code: 107 };
     }
 
