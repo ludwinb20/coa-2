@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     const base64Photo = formData.get("photo");
     const type = formData.get("type");
 
-    if (!id || !base64Photo || type) {
+    if (!id || !base64Photo || !type) {
       console.log("Faltan datos requeridos");
       return NextResponse.json({ error: "Faltan datos requeridos" }, { status: 400 });
     }
