@@ -265,11 +265,21 @@ export async function makeScheduleCheck({
       return { success: false, code: 107 };
     }
 
+    let total = Math.abs(new Date(currentPunch[0].in).getTime() - new Date(fechaActual).getTime());
+    if(currentPunch[0].lunch_out !== null && currentPunch[0].lunch_in !== null){
+      const diffInMillisecondsLunchOut = Math.abs(new Date(currentPunch[0].lunch_out).getTime() - new Date(currentPunch[0].lunch_in).getTime());
+      total = total - diffInMillisecondsLunchOut;
+    }
+
+    total = Math.floor(total/1000);
+
+
     const { data: updatedPunch, error: updateError } = await admin
     .from("schedule-checks")
     .update({
       out: fechaActual,
-      out_photo: uploadedFile
+      out_photo: uploadedFile,
+      total: total
     })
     .eq("id", currentPunch[0].id)
     .select("*");
