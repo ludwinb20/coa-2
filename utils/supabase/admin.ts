@@ -131,8 +131,8 @@ export async function makeScheduleCheck({
       .select("*")
       .eq("payroll_id", payroll.id)
       .eq("user_id", id)
-      .gte("created_at", new Date().toISOString().split("T")[0]) // Fecha de inicio del día actual
-      .lt("created_at", new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]) // Inicio del siguiente día
+      .gte("created_at", new Date().toISOString().split("T")[0])
+      .lt("created_at", new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0])
       .limit(1);
 
       if (currentPunchError) {
@@ -144,19 +144,19 @@ export async function makeScheduleCheck({
         return { success: true, code: 102 };
       }
 
-      if(currentPunch[0].out_lunch){
+      if(currentPunch[0].lunch_out !== null){
         return { success: false, code: 106 };
       }
 
-      if(currentPunch[0].out){
+      if(currentPunch[0].out !== null){
         return { success: false, code: 107 };
       }
 
       const { data: updatedPunch, error: updateError } = await admin
       .from("schedule-checks")
       .update({
-        out_lunch: fechaActual,
-        out_lunch_photo: uploadedFile
+        lunch_out: fechaActual,
+        photo_lunch_out: uploadedFile
       })
       .eq("id", currentPunch[0].id)
       .select("*");
@@ -195,26 +195,26 @@ export async function makeScheduleCheck({
       }
 
       if (!currentPunch || currentPunch.length === 0) {
-        return { success: true, code: 102 };
+        return { success: false, code: 102 };
       }
 
-      if(!currentPunch[0].out_lunch){
+      if(!currentPunch[0].lunch_out){
         return { success: false, code: 103 };
       }
 
-      if(currentPunch[0].in_lunch){
+      if(currentPunch[0].lunch_in !== null){
         return { success: false, code: 104 };
       }
 
-      if(currentPunch[0].out){
+      if(currentPunch[0].out !== null){
         return { success: false, code: 107 };
       }
 
       const { data: updatedPunch, error: updateError } = await admin
       .from("schedule-checks")
       .update({
-        in_lunch: fechaActual,
-        in_lunch_photo: uploadedFile
+        lunch_in: fechaActual,
+        photo_lunch_in: uploadedFile
       })
       .eq("id", currentPunch[0].id)
       .select("*");
@@ -254,22 +254,32 @@ export async function makeScheduleCheck({
     }
 
     if (!currentPunch || currentPunch.length === 0) {
-      return { success: true, code: 102 };
+      return { success: false, code: 102 };
     }
 
-    if(currentPunch[0].out_lunch && !currentPunch[0].in_lunch){
+    if(currentPunch[0].lunch_out !== null && !currentPunch[0].lunch_in){
       return { success: false, code: 105 };
     }
 
-    if(currentPunch[0].out){
+    if(currentPunch[0].out !== null){
       return { success: false, code: 107 };
     }
+
+    let total = Math.abs(new Date(currentPunch[0].in).getTime() - new Date(fechaActual).getTime());
+    if(currentPunch[0].lunch_out !== null && currentPunch[0].lunch_in !== null){
+      const diffInMillisecondsLunchOut = Math.abs(new Date(currentPunch[0].lunch_out).getTime() - new Date(currentPunch[0].lunch_in).getTime());
+      total = total - diffInMillisecondsLunchOut;
+    }
+
+    total = Math.floor(total/1000);
+
 
     const { data: updatedPunch, error: updateError } = await admin
     .from("schedule-checks")
     .update({
       out: fechaActual,
-      out_photo: uploadedFile
+      out_photo: uploadedFile,
+      total: total
     })
     .eq("id", currentPunch[0].id)
     .select("*");
