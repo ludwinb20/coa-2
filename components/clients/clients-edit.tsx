@@ -85,7 +85,7 @@ const EditClient = ({ client }: { client: Client }) => {
       id: client.id,
       name: values.nombre,
       rtn: values.rtn,
-      file: selectedFile ?? (originalImageDeleted ? null : client.file),
+      file: selectedFile ?? (originalImageDeleted ? null : client.file ?? null),
     });
     setSaving(false);
 
