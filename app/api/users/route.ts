@@ -36,8 +36,9 @@ export async function POST(req: NextRequest) {
 
     const id = formData.get("id");
     const base64Photo = formData.get("photo");
+    const type = formData.get("type");
 
-    if (!id || !base64Photo) {
+    if (!id || !base64Photo || type) {
       console.log("Faltan datos requeridos");
       return NextResponse.json({ error: "Faltan datos requeridos" }, { status: 400 });
     }
@@ -49,9 +50,9 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(base64Photo, "base64");
     const file = new File([buffer], `${id}_photo.jpg`, { type: "image/jpeg" });
-    const response = await makeScheduleCheck({ id: id as string, file: file });
+    const response = await makeScheduleCheck({ id: id as string, file: file, type: type as string });
     if (!response.success) {
-      return NextResponse.json({ error: "Error procesando la solicitud" }, { status: 500 });
+      return NextResponse.json({ error: "Error procesando la solicitud", code: response.code }, { status: 500 });
     }
 
     return NextResponse.json({ message: "Punch creado correctamente", data: response.data }, { status: 200 });

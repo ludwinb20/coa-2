@@ -1,5 +1,7 @@
 import { Payroll, Profile, scheduleCheck, UserProfile } from '@/types/models';
 import { createClient } from '@supabase/supabase-js';
+import { isAfter } from 'date-fns';
+import { get } from 'http';
 import { v4 as uuidv4 } from "uuid";
 const admin = createServiceRoleClient();
 
@@ -51,122 +53,110 @@ export async function updateUserEmail({email, id}: {email: string, id: string}) 
 export async function makeScheduleCheck({
   id,
   file,
+  type
 }: {
   id: string;
   file: File;
-}): Promise<{ success: boolean; data?: UserProfile }> {
+  type: string;
+}): Promise<{ success: boolean; data?: UserProfile; code?: number }> {
+  // const errorsCode = {
+  //   101: "Usted ya marco su entrada hoy",
+  //   106: "Usted ya marco su salida del almuerzo hoy",
+  //   102: "Usted no ha marcado entrada el dia de hoy",
+  //   103: "Usted no ha marcado salida a almuerzo hoy",
+  //   104: "Usted ya marco su entrada del almuerzo hoy",
+  //   105: "Usted no ha marcado entrada del almuerzo hoy",
+  //   107: "Usted ya marco su salida hoy",
+  // }
   try {
     const result = await uploadFile({
       bucket: "punchs",
       file: file,
     });
 
+    
     if (!result.success) return { success: false };
     let uploadedFile = result.data;
-    const { data: payrollData, error: payrollError } = await admin
-      .from("payroll")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1);
+    
+    const payroll = await getPayroll();
+    if(payroll === null) return { success: false };
 
-    if (payrollError) {
-      console.error("Error fetching payroll:", payrollError);
-      return { success: false };
-    }
-
-    let payroll = payrollData?.[0];
-
-    // Crear nómina si no existe ninguna
-    if (!payroll) {
-      const payrollResult = await createPayroll();
-      if (!payrollResult.success || !payrollResult.data) {
-        return { success: false };
-      }
-      payroll = payrollResult.data;
-    }
-
-    // Verificar si ya existe un registro de entrada sin salida
-    const { data: currentPunch, error: currentPunchError } = await admin
-      .from("schedule-checks")
-      .select("*")
-      .eq("payroll_id", payroll.id)
-      .eq("user_id", id)
-      .is("out", null)
-      .limit(1);
-
-    if (currentPunchError) {
-      console.error("Error fetching current punch:", currentPunchError.message);
-      return { success: false };
-    }
     const fechaActual = new Date();
 
-    // Crear un nuevo registro si no existe entrada activa
-    if (!currentPunch || currentPunch.length === 0) {
-      const newPunch = await createNewPunch(payroll.id, id, uploadedFile ?? "");
-      const { data: profiles, error: profileError } = await admin
-      .from("profiles")
-      .select("*")
-      .eq("id", id)
-      .limit(1);
-    
-    if (profileError) {
-      console.error("Error fetching profile:", profileError.message);
-      return { success: false };
-    }
-    
-    if (!profiles || profiles.length === 0) {
-      console.error("No profile data returned after update.");
-      return { success: false };
-    }
-    
-    const profile = profiles[0];
-    
-    if (profile.avatar_url) {
-      const { data: signedUrlData, error: signedUrlError } = await admin.storage
-        .from("avatars")
-        .createSignedUrl(`users/${profile.avatar_url}`, 3600);
-    
-      if (signedUrlError) {
-        console.error("Error generating signed URL:", signedUrlError.message);
-      }else{
-        profile.url = signedUrlData.signedUrl;
-      }
-    }
     const opciones: Intl.DateTimeFormatOptions = {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
       timeZone: "America/Tegucigalpa"
     };
+        
+    const dateFormatted = fechaActual.toLocaleTimeString("es-ES", opciones);
+
+
+    if(type === "entrada"){
+      const { data: currentPunch, error: currentPunchError } = await admin
+      .from("schedule-checks")
+      .select("*")
+      .eq("payroll_id", payroll.id)
+      .eq("user_id", id)
+      .gte("created_at", new Date().toISOString().split("T")[0]) // Fecha de inicio del día actual
+      .lt("created_at", new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]) // Inicio del siguiente día
+      .limit(1);
+
+      if (currentPunchError) {
+        console.error("Error fetching current punch:", currentPunchError.message);
+        return { success: false };
+      }
   
-     profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
-     profile.type = "in";
-     console.log(profile);
-      return { success: true, data: profile };
+      if (!currentPunch || currentPunch.length === 0) {
+  
+        const newPunch = await createNewPunch(payroll.id, id, uploadedFile ?? "");
+
+        if(newPunch.success === false) return { success: false };
+      
+        const profile = await getProfile(id);
+        if(profile === null) return { success: false };
+
+       profile.hora = dateFormatted;
+       console.log(profile);
+        return { success: true, data: profile };
+      }
+
+      return { success: false, code: 101 };
     }
 
-    const entrada = currentPunch[0].in;
+    if(type === "salida_almuerzo"){
+      const { data: currentPunch, error: currentPunchError } = await admin
+      .from("schedule-checks")
+      .select("*")
+      .eq("payroll_id", payroll.id)
+      .eq("user_id", id)
+      .gte("created_at", new Date().toISOString().split("T")[0]) // Fecha de inicio del día actual
+      .lt("created_at", new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]) // Inicio del siguiente día
+      .limit(1);
 
-    if (!entrada) {
-      console.error("El campo 'in' no está disponible o es nulo.");
-      return { success: false };
-    }
-    
-    const fechaEntrada = new Date(entrada); // Convertir a Date
-    if (isNaN(fechaEntrada.getTime())) {
-      console.error("El campo 'in' no es una fecha válida.");
-      return { success: false };
-    }
-    
-    const total = Math.floor((fechaActual.getTime() - fechaEntrada.getTime()) / 1000);
+      if (currentPunchError) {
+        console.error("Error fetching current punch:", currentPunchError.message);
+        return { success: false };
+      }
 
-    // Actualizar el registro existente con la hora de salida
-    const { data: updatedPunch, error: updateError } = await admin
+      if (!currentPunch || currentPunch.length === 0) {
+        return { success: true, code: 102 };
+      }
+
+      if(currentPunch[0].out_lunch){
+        return { success: false, code: 106 };
+      }
+
+      if(currentPunch[0].out){
+        return { success: false, code: 107 };
+      }
+
+      const { data: updatedPunch, error: updateError } = await admin
       .from("schedule-checks")
       .update({
-        out: fechaActual,
-        total: total,
-        out_photo: uploadedFile
+        out_lunch: fechaActual,
+        out_lunch_photo: uploadedFile
       })
       .eq("id", currentPunch[0].id)
       .select("*");
@@ -180,47 +170,129 @@ export async function makeScheduleCheck({
       console.error("No punch data returned after update.");
       return { success: false };
     }
+    
+    const profile = await getProfile(id);
+    if(profile === null) return { success: false };
 
-    const { data: profiles, error: profileError } = await admin
-    .from("profiles")
-    .select("*")
-    .eq("id", id)
-    .limit(1);
-  
-  if (profileError) {
-    console.error("Error fetching profile:", profileError.message);
-    return { success: false };
-  }
-  
-  if (!profiles || profiles.length === 0) {
-    console.error("No profile data returned after update.");
-    return { success: false };
-  }
-  
-  const profile = profiles[0];
-  
-  if (profile.avatar_url) {
-    const { data: signedUrlData, error: signedUrlError } = await admin.storage
-      .from("avatars")
-      .createSignedUrl(`users/${profile.avatar_url}`, 3600);
-  
-    if (signedUrlError) {
-      console.error("Error generating signed URL:", signedUrlError.message);
-    }else{
-      profile.url = signedUrlData.signedUrl;
-    }
-  }
-  const opciones: Intl.DateTimeFormatOptions = {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: "America/Tegucigalpa"
-  };
-
-   profile.hora = fechaActual.toLocaleTimeString("es-ES", opciones);
-   profile.type = "out";
+   profile.hora = dateFormatted;
    console.log(profile);
     return { success: true, data: profile };
+  }
+
+  if(type === "entrada_almuerzo"){
+      const { data: currentPunch, error: currentPunchError } = await admin
+      .from("schedule-checks")
+      .select("*")
+      .eq("payroll_id", payroll.id)
+      .eq("user_id", id)
+      .gte("created_at", new Date().toISOString().split("T")[0]) // Fecha de inicio del día actual
+      .lt("created_at", new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]) // Inicio del siguiente día
+      .limit(1);
+
+      if (currentPunchError) {
+        console.error("Error fetching current punch:", currentPunchError.message);
+        return { success: false };
+      }
+
+      if (!currentPunch || currentPunch.length === 0) {
+        return { success: true, code: 102 };
+      }
+
+      if(!currentPunch[0].out_lunch){
+        return { success: false, code: 103 };
+      }
+
+      if(currentPunch[0].in_lunch){
+        return { success: false, code: 104 };
+      }
+
+      if(currentPunch[0].out){
+        return { success: false, code: 107 };
+      }
+
+      const { data: updatedPunch, error: updateError } = await admin
+      .from("schedule-checks")
+      .update({
+        in_lunch: fechaActual,
+        in_lunch_photo: uploadedFile
+      })
+      .eq("id", currentPunch[0].id)
+      .select("*");
+
+    if (updateError) {
+      console.error("Error updating punch:", updateError.message);
+      return { success: false };
+    }
+
+    if (!updatedPunch || updatedPunch.length === 0) {
+      console.error("No punch data returned after update.");
+      return { success: false };
+    }
+    
+    const profile = await getProfile(id);
+    if(profile === null) return { success: false };
+
+   profile.hora = dateFormatted;
+   console.log(profile);
+    return { success: true, data: profile };
+  }
+
+
+  if(type === "salida"){
+    const { data: currentPunch, error: currentPunchError } = await admin
+    .from("schedule-checks")
+    .select("*")
+    .eq("payroll_id", payroll.id)
+    .eq("user_id", id)
+    .gte("created_at", new Date().toISOString().split("T")[0]) // Fecha de inicio del día actual
+    .lt("created_at", new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]) // Inicio del siguiente día
+    .limit(1);
+
+    if (currentPunchError) {
+      console.error("Error fetching current punch:", currentPunchError.message);
+      return { success: false };
+    }
+
+    if (!currentPunch || currentPunch.length === 0) {
+      return { success: true, code: 102 };
+    }
+
+    if(currentPunch[0].out_lunch && !currentPunch[0].in_lunch){
+      return { success: false, code: 105 };
+    }
+
+    if(currentPunch[0].out){
+      return { success: false, code: 107 };
+    }
+
+    const { data: updatedPunch, error: updateError } = await admin
+    .from("schedule-checks")
+    .update({
+      out: fechaActual,
+      out_photo: uploadedFile
+    })
+    .eq("id", currentPunch[0].id)
+    .select("*");
+
+  if (updateError) {
+    console.error("Error updating punch:", updateError.message);
+    return { success: false };
+  }
+
+  if (!updatedPunch || updatedPunch.length === 0) {
+    console.error("No punch data returned after update.");
+    return { success: false };
+  }
+  
+  const profile = await getProfile(id);
+  if(profile === null) return { success: false };
+
+ profile.hora = dateFormatted;
+ console.log(profile);
+  return { success: true, data: profile };
+}
+
+return { success: false};
   } catch (error) {
     console.error("Unexpected error:", error);
     return { success: false };
@@ -342,4 +414,63 @@ const uploadFile = async ({bucket, file}:{bucket: string,  file: File}) => {
 const getFileExtension = (fileName: string) => {
   const fileNameSplit = fileName.split('.')
   return fileNameSplit[fileNameSplit.length - 1]
+}
+
+const getPayroll = async () => {
+  const { data: payrollData, error: payrollError } = await admin
+  .from("payroll")
+  .select("*")
+  .order("created_at", { ascending: false })
+  .limit(1);
+
+if (payrollError) {
+  console.error("Error fetching payroll:", payrollError);
+  return null;
+}
+
+let payroll = payrollData?.[0];
+
+if (!payroll) {
+  const payrollResult = await createPayroll();
+  if (!payrollResult.success || !payrollResult.data) {
+    return { success: false };
+  }
+  payroll = payrollResult.data;
+}
+
+return payroll;
+}
+
+const getProfile = async (id: string) => {
+  const { data: profiles, error: profileError } = await admin
+  .from("profiles")
+  .select("*")
+  .eq("id", id)
+  .limit(1);
+
+if (profileError) {
+  console.error("Error fetching profile:", profileError.message);
+  return null;
+}
+
+if (!profiles || profiles.length === 0) {
+  console.error("No profile data returned after update.");
+  return null;
+}
+
+const profile = profiles[0];
+
+if (profile.avatar_url) {
+  const { data: signedUrlData, error: signedUrlError } = await admin.storage
+    .from("avatars")
+    .createSignedUrl(`users/${profile.avatar_url}`, 3600);
+
+  if (signedUrlError) {
+    console.error("Error generating signed URL:", signedUrlError.message);
+  }else{
+    profile.url = signedUrlData.signedUrl;
+  }
+}
+return profile;
+
 }
