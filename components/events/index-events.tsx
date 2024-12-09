@@ -5,7 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { Encargados, Event as EventType } from '@/types/models';
-import { getEvents, createEvent, updateEvent, deleteEvent, createEventFile, createEncargados, getEncargados, getEventFiles } from '@/services/events';
+import { getEvents, createEvent, updateEvent, deleteEvent, createEventFile, createEncargados, getEncargados, getEventFiles, deleteEventFile } from '@/services/events';
 import Dropzone from '@/components/ui/dropzone';
 import { getCategories } from '@/services/events';
 import { Events_category } from '@/types/models';
@@ -121,11 +121,12 @@ export default function EventsCalendar() {
     const fetchEvents = async () => {
         try {
             const eventData: EventType[] = await getEvents();
+            console.log('Eventos recuperados:', eventData);
             const formattedEvents: FormattedEvent[] = eventData.map(event => ({
                 id: event.id ? event.id.toString() : '',
                 title: event.nombre,
                 start: new Date(event.fecha_inicio),
-                end: new Date(event.fecha_inicio),
+                end: new Date(event.fecha_final),
                 allDay: true,
                 extendedProps: {
                     categoria: event.categoria,
@@ -215,12 +216,15 @@ export default function EventsCalendar() {
         setSelectedEvent(null);
         setIsViewModalOpen(false);
         
+        const endDate = new Date(selectedDate);
+        endDate.setHours(endDate.getHours() + 1);
+
         setSelectedDate(selectedDate);
         setIsCreateModalOpen(true);
         setNewEvent({
             ...newEvent,
             fecha_inicio: selectedDate.toISOString().slice(0, 16),
-            fecha_final: selectedDate.toISOString().slice(0, 16)
+            fecha_final: endDate.toISOString().slice(0, 16)
         });
     };
 
@@ -325,12 +329,18 @@ export default function EventsCalendar() {
         }
     };
 
+    const adjustDateByHours = (date: Date, hours: number): Date => {
+        const adjustedDate = new Date(date);
+        adjustedDate.setHours(adjustedDate.getHours() + hours);
+        return adjustedDate;
+    };
+
     const handleEditClick = () => {
         if (selectedEvent) {
             setEditingEvent({
                 nombre: selectedEvent.title,
-                fecha_inicio: new Date(selectedEvent.start).toISOString().slice(0, 16),
-                fecha_final: new Date(selectedEvent.end).toISOString().slice(0, 16),
+                fecha_inicio: adjustDateByHours(selectedEvent.start, -6).toISOString().slice(0, 16),
+                fecha_final: adjustDateByHours(selectedEvent.end, -6).toISOString().slice(0, 16),
                 categoria: selectedEvent.extendedProps.categoria,
                 creador_evento: selectedEvent.extendedProps.creador_evento,
                 client_id: selectedEvent.extendedProps.client_id,
@@ -392,6 +402,14 @@ export default function EventsCalendar() {
                 notas: ''
             });
         }
+    };
+
+  
+    const formatDateForInput = (dateString: string) => {
+        const date = new Date(dateString);
+        const offset = date.getTimezoneOffset() * 60000; // offset in milliseconds
+        const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16);
+        return localISOTime;
     };
 
     return (
@@ -565,66 +583,68 @@ export default function EventsCalendar() {
                                                 )}
                                             </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-500 mb-2">Archivos adjuntos</p>
-                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                                {selectedEvent?.extendedProps?.files && selectedEvent.extendedProps.files.length > 0 ? (
-                                                    <div className="space-y-2">
-                                                        {Array.from(new Set(selectedEvent.extendedProps.files.map(f => f.id))).map(fileId => {
-                                                            const file = selectedEvent.extendedProps.files?.find(f => f.id === fileId);
-                                                            if (!file) return null;
-                                                            
-                                                            const isImage = file.type === 'png' || file.type === 'jpg' || file.type === 'jpeg';
-                                                            
-                                                            return (
-                                                                <div 
-                                                                    key={file.id} 
-                                                                    className="flex items-center justify-between p-3 bg-white rounded-md shadow-sm hover:bg-gray-50 transition-colors"
-                                                                >
-                                                                    <div className="flex items-center gap-3">
-                                                                        <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded">
-                                                                            {isImage ? (
-                                                                                <img 
-                                                                                    src={file.url} 
-                                                                                    alt={file.name}
-                                                                                    className="w-10 h-10 rounded object-cover"
-                                                                                />
-                                                                            ) : (
-                                                                                <DocumentIcon className="w-6 h-6 text-gray-500" />
-                                                                            )}
-                                                                        </div>
-                                                                        <div className="flex flex-col">
-                                                                            <span className="text-sm font-medium text-gray-700">
-                                                                                {file.name}
-                                                                            </span>
-                                                                            <span className="text-xs text-gray-500">
-                                                                                {file.type.toUpperCase()}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <a
-                                                                        href={file.url}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 
-                                                                                 hover:bg-blue-50 rounded transition-colors"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                        }}
+                                        {!isEditing && (
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-500 mb-2">Archivos adjuntos</p>
+                                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                                    {selectedEvent?.extendedProps?.files && selectedEvent.extendedProps.files.length > 0 ? (
+                                                        <div className="space-y-2">
+                                                            {Array.from(new Set(selectedEvent.extendedProps.files.map(f => f.id))).map(fileId => {
+                                                                const file = selectedEvent.extendedProps.files?.find(f => f.id === fileId);
+                                                                if (!file) return null;
+                                                                
+                                                                const isImage = file.type === 'png' || file.type === 'jpg' || file.type === 'jpeg';
+                                                                
+                                                                return (
+                                                                    <div 
+                                                                        key={file.id} 
+                                                                        className="relative flex items-center justify-between p-3 bg-white rounded-md shadow-sm hover:bg-gray-50 transition-colors"
                                                                     >
-                                                                        Ver
-                                                                    </a>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                ) : (
-                                                    <p className="text-gray-500 text-sm text-center py-4">
-                                                        No hay archivos adjuntos
-                                                    </p>
-                                                )}
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded">
+                                                                                {isImage ? (
+                                                                                    <img 
+                                                                                        src={file.url} 
+                                                                                        alt={file.name}
+                                                                                        className="w-10 h-10 rounded object-cover"
+                                                                                    />
+                                                                                ) : (
+                                                                                    <DocumentIcon className="w-6 h-6 text-gray-500" />
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="flex flex-col">
+                                                                                <span className="text-sm font-medium text-gray-700">
+                                                                                    {file.name}
+                                                                                </span>
+                                                                                <span className="text-xs text-gray-500">
+                                                                                    {file.type.toUpperCase()}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <a
+                                                                            href={file.url}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 
+                                                                                     hover:bg-blue-50 rounded transition-colors"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                            }}
+                                                                        >
+                                                                            Ver
+                                                                        </a>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-gray-500 text-sm text-center py-4">
+                                                            No hay archivos adjuntos
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                     <DialogFooter className="border-t pt-4 px-6 pb-6 flex justify-end space-x-3">
                                         <button
@@ -742,11 +762,96 @@ export default function EventsCalendar() {
                                             <Label>Fecha de Finalización</Label>
                                             <input
                                                 type="datetime-local"
-                                                value={editingEvent.fecha_final}
+                                                value={formatDateForInput(editingEvent.fecha_final)}
                                                 onChange={(e) => setEditingEvent({ ...editingEvent, fecha_final: e.target.value })}
                                                 className="w-full p-2 border rounded"
                                                 required
                                             />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500 mb-2">Archivos adjuntos</p>
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            {selectedEvent?.extendedProps?.files && selectedEvent.extendedProps.files.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {Array.from(new Set(selectedEvent.extendedProps.files.map(f => f.id))).map(fileId => {
+                                                        const file = selectedEvent.extendedProps.files?.find(f => f.id === fileId);
+                                                        if (!file) return null;
+                                                        
+                                                        const isImage = file.type === 'png' || file.type === 'jpg' || file.type === 'jpeg';
+                                                        
+                                                        return (
+                                                            <div 
+                                                                key={file.id} 
+                                                                className="relative flex items-center justify-between p-3 bg-white rounded-md shadow-sm hover:bg-gray-50 transition-colors"
+                                                            >
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded">
+                                                                        {isImage ? (
+                                                                            <img 
+                                                                                src={file.url} 
+                                                                                alt={file.name}
+                                                                                className="w-10 h-10 rounded object-cover"
+                                                                            />
+                                                                        ) : (
+                                                                            <DocumentIcon className="w-6 h-6 text-gray-500" />
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-sm font-medium text-gray-700">
+                                                                            {file.name}
+                                                                        </span>
+                                                                        <span className="text-xs text-gray-500">
+                                                                            {file.type.toUpperCase()}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <a
+                                                                    href={file.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 
+                                                                             hover:bg-blue-50 rounded transition-colors"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                    }}
+                                                                >
+                                                                    Ver
+                                                                </a>
+                                                                {isEditing && (
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            if (window.confirm('¿Estás seguro de que deseas eliminar este archivo?')) {
+                                                                                try {
+                                                                                    await deleteEventFile(file.id);
+                                                                                    // Actualizar la lista de archivos después de eliminar
+                                                                                    const updatedFiles = selectedEvent.extendedProps.files?.filter(f => f.id !== file.id);
+                                                                                    setSelectedEvent({
+                                                                                        ...selectedEvent,
+                                                                                        extendedProps: {
+                                                                                            ...selectedEvent.extendedProps,
+                                                                                            files: updatedFiles
+                                                                                        }
+                                                                                    });
+                                                                                } catch (error) {
+                                                                                    console.error('Error al eliminar archivo:', error);
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                        className="absolute top-0 right-0 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
+                                                                    >
+                                                                        <X className="h-4 w-4" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-500 text-sm text-center py-4">
+                                                    No hay archivos adjuntos
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                     <DialogFooter className="border-t pt-4">

@@ -226,4 +226,10 @@ export type Encargados = {
   };
 };
 
+interface EventFile {
+  id: number;
+  url: string;
+  name: string;
+  type: string;
+}
 

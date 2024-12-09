@@ -414,3 +414,10 @@ function getFileType(extension: string): string {
         return 'other';
     }
 }
+
+export const deleteEventFile = async (id: number): Promise<void> => {
+    const { error } = await supabase.from('events_files').delete().eq('id', id);
+    if (error) {
+        throw new Error(error.message);
+    }
+}
