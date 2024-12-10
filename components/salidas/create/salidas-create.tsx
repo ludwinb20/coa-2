@@ -30,6 +30,8 @@ import { Asset } from "@/types/asset";
 import { getAsset } from "@/services/asset";
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import ScrollAssets from './scroll-assets';
+import SelectEvents from "./select-events";
+
 
 interface AssetAssignment {
   asset_id: string;
@@ -40,7 +42,7 @@ const SalidasCreate = () => {
   const [saving, setSaving] = useState<boolean>(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const[assets,setAssets]=useState<Asset[]>([])
+  const [assets, setAssets] = useState<Asset[]>([]);
   const { user } = useSession();
   const [assetAssignments, setAssetAssignments] = useState<AssetAssignment[]>([]);
 
@@ -81,6 +83,7 @@ const SalidasCreate = () => {
     assets_ids: z.array(z.string(), {
       required_error: "Al menos un asset es requerido",
     }).min(1, "Seleccione al menos un asset"),
+    evento_id: z.number().optional(),
   }).refine((data) => data.fecha_inicio < data.fecha_final, {
     message: "La fecha final debe ser posterior a la fecha de inicio",
     path: ["fecha_final"],
@@ -109,11 +112,15 @@ const SalidasCreate = () => {
         throw new Error("Usuario no autenticado");
       }
       
-      await createCampo({
-        ...values,
+      const { evento_id, ...restValues } = values;
+      const payload = {
+        ...restValues,
         usuario_ids: values.usuarios_ids.map(String),
-        asset_assignments: assetAssignments
-      });
+        asset_assignments: assetAssignments,
+        evento_id: evento_id ?? null
+      };
+
+      await createCampo(payload);
       toast.success("Salida a campo creada exitosamente");
     } catch (error) {
       toast.error("Error al crear la salida a campo");
@@ -197,7 +204,20 @@ const SalidasCreate = () => {
                 )}
               />
 
-             
+              <FormField
+                control={form.control}
+                name="evento_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Evento</FormLabel>
+                    <SelectEvents
+                      onChange={(value) => field.onChange(value)}
+                    />
+                    <FormDescription>Seleccione el evento asociado (opcional).</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

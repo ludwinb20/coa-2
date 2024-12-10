@@ -8,8 +8,6 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
-  getSortedRowModel,
-  SortingState,
 } from "@tanstack/react-table";
 
 import {
@@ -29,27 +27,23 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
-export function DataTableCampo<TData, TValue>({
+export function DataTableProjects<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    onSortingChange: setSorting,
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       columnFilters,
-      sorting,
     },
   });
 
@@ -70,7 +64,7 @@ export function DataTableCampo<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="text-sm">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -89,9 +83,10 @@ export function DataTableCampo<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="h-10" 
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="py-1 text-sm">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

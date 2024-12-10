@@ -76,6 +76,16 @@ export type Departamento = {
     fecha_inicio: Date;
     fecha_final: Date;
     estado: string;
+    events?:{
+      id: number;
+      nombre: string;
+      fecha_inicio: Date;
+      fecha_final: Date;
+      categoria: string;
+      creador_evento: string;
+      client_id: number;
+      notas: string;
+    }
     clients?:{
       id: number;
     name: string;
@@ -182,6 +192,14 @@ export type scheduleCheck = {
   }
 
   export type Event = {
+    campo?: {
+        id: number;
+        proyecto_id: number;
+        cliente_id: number;
+        fecha_inicio: Date;
+        fecha_final: Date;
+        estado: string;
+    };
     id?: number;
     nombre: string;
     fecha_inicio: Date;
@@ -251,5 +269,20 @@ export interface AbsenceCategory {
   created_at: Date;
   rango: number | null;
   documentacion_requerida: boolean;
+}
+
+
+export type Project = {
+  id?: number;
+  nombre: string;
+  cliente_id: number;
+  categoria_id: number;
+}
+
+export type ProjectCategory = {
+  id?: number;
+  nombre: string;
+  descripcion: string;
+  
 }
 
