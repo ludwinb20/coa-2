@@ -16,7 +16,8 @@ export const getSalidas = async (): Promise<Campo[]> => {
               id,
               name
             )
-          `));
+          `))
+        .order('id', { ascending: true });
 
     if (error) {
         throw new Error(error.message);
@@ -94,7 +95,7 @@ export const createCampo = async ({
     fecha_final: Date;
     usuario_ids: string[];
     asset_assignments: AssetAssignment[];
-    evento_id: number;
+    evento_id: number | null;
 }): Promise<{ campo: Campo | null; success: boolean }> => {
     // Primera inserción - campo
     const { data, error } = await supabase.from("campo").insert([
@@ -112,6 +113,9 @@ export const createCampo = async ({
         return { campo: null, success: false };
     }
 
+    // Ordenar usuario_ids
+    usuario_ids.sort();
+
     // Segunda inserción - campo_usuarios
     const campoUsuariosInsertions = usuario_ids.map(usuario_id => ({
         campo_id: data.id,
@@ -126,6 +130,9 @@ export const createCampo = async ({
         console.error("Error creando campo_usuarios:", campoUsuariosError);
         return { campo: null, success: false };
     }
+
+    // Ordenar asset_assignments por asset_id
+    asset_assignments.sort((a, b) => a.asset_id.localeCompare(b.asset_id));
 
     // Tercera inserción - campo_assets
     const campoAssetsInsertions = asset_assignments.map(assignment => ({

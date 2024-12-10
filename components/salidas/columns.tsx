@@ -28,6 +28,14 @@ const HandleReject = ({row}:{row: Campo}) => {
 
 
 export const columnsCampo: ColumnDef<Campo>[] = [
+  {
+    accessorKey: "id",
+    header: "Campo ID",
+    cell: ({ row }) => {
+      return <p>{row.original.id ?? ""}</p>;
+    },
+    sortingFn: 'basic',
+  },
    {
      accessorKey: "proyecto_id",
      header: "Proyecto",
