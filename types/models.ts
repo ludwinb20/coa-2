@@ -251,3 +251,17 @@ interface EventFile {
   type: string;
 }
 
+export type Project = {
+  id?: number;
+  nombre: string;
+  cliente_id: number;
+  categoria_id: number;
+}
+
+export type ProjectCategory = {
+  id?: number;
+  nombre: string;
+  descripcion: string;
+  
+}
+
