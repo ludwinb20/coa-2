@@ -233,3 +233,23 @@ interface EventFile {
   type: string;
 }
 
+export type Ausencia = {
+  id: number;
+  start: Date;
+  end: Date;
+  user_id: string;
+  profile?: Profile;
+  type: string;
+  status: string;
+  created_at: Date;
+  file: File | null;
+}
+
+export interface AbsenceCategory {
+  id: number;
+  nombre: string;
+  created_at: Date;
+  rango: number | null;
+  documentacion_requerida: boolean;
+}
+

@@ -3,6 +3,7 @@ import {
   AccountCircleIcon,
     BadgeIcon,
     CalendarIcon,
+    HeartBeatIcon,
     HomeIconLaravel,
     InventoryIcon,
     PeopleIcon,
@@ -76,6 +77,14 @@ export const routes: Route[] = [
           space: false,
           roles: [1, 2, 3, 4],
         },
+        {
+          id: 16,
+          title: "Ausencias",
+          href: "/dashboard/users/absences",
+          icon: HeartBeatIcon,
+          space: false,
+          roles: [1, 2, 3, 4],
+        },
       ],
     },
     {
@@ -127,5 +136,4 @@ export const routes: Route[] = [
         },
       ],
     },
-      
 ]

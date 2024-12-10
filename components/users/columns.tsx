@@ -8,6 +8,7 @@ import DeleteUsers from "./users-delete";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import useUsers from "@/hooks/use-users";
 import ResetPassowrd from "./reset-password";
+import QRUser from "./qr";
 
 const HandleEdit = ({ row }: { row: UserProfile }) => {
   const [user, setUser] = useState<UserProfile>(row);
@@ -22,6 +23,11 @@ const HandleDelete = ({ row }: { row: UserProfile }) => {
 
 const HandleResetPassword = ({email}:{email: string}) => {
   return <ResetPassowrd email={email}/>;
+};
+
+const HandleQR = ({ row }: { row: UserProfile }) => {
+  const [user, setUser] = useState<UserProfile>(row);
+  return <QRUser userProfile={user} />;
 };
 
 export const columnsUsers: ColumnDef<UserProfile>[] = [
@@ -80,6 +86,7 @@ export const columnsUsers: ColumnDef<UserProfile>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex justify-center items-center gap-x-2">
+          <HandleQR row={row.original} />
           <HandleEdit row={row.original} />
           <HandleDelete row={row.original} />
           <HandleResetPassword email={row.original.email ?? ""}/>
