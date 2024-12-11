@@ -288,3 +288,43 @@ export type ProjectCategory = {
   
 }
 
+export type Tarea = {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  proyecto_id?: number | null;
+  creador: string;
+  encargado: string;
+  prioridad: 'baja' | 'media' | 'alta';
+  estado: 'pendiente' | 'en_progreso' | 'completada' | 'cancelada';
+  fecha_inicio: Date;
+  fecha_final: Date;
+  file?: string | null;
+  url?: string | null;
+  profiles_encargado?: {
+    id: string;
+    full_name: string | null;
+    avatar_url?: string | null;
+  } | null;
+  profiles_creador?: {
+    id: string;
+    full_name: string | null;
+    avatar_url?: string | null;
+  } | null;
+  avatarUrl?: string | null;
+  creadorAvatarUrl?: string | null;
+};
+
+export type TareaFile = {
+  id: number;
+  tarea_id: number;
+  file: string;
+  url?: string | null;
+};
+
+export type SubTarea = {
+  id: number;
+  tarea_id: number;
+  nombre: string;
+  descripcion: string;
+} 
