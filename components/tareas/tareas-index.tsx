@@ -14,11 +14,10 @@ type Props = {
 const TareaIndex = ({ tarea }: Props) => {
   const router = useRouter();
   return (
-    <div>
-    <Card className="rounded-md border">
-      <CardHeader>
-            <CardTitle>Tareas</CardTitle>
-        <div className="flex justify-end items-center mb-4">
+    <div className="p-4">
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Tareas</h2>
           <Button
             onClick={() => {
               router.push("/dashboard/tareas/create");
@@ -29,11 +28,8 @@ const TareaIndex = ({ tarea }: Props) => {
             Agregar Tarea
           </Button>
         </div>
-      </CardHeader>
-      <CardContent>
-            <DataTableTarea columns={columnsTarea} data={tarea} />
-      </CardContent>
-    </Card>
+        <DataTableTarea columns={columnsTarea} data={tarea} />
+      </div>
     </div>
   );
 };

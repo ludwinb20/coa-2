@@ -21,21 +21,64 @@ export const getTareas = async (): Promise<Tarea[]> => {
   const { data: tareas, error } = await supabase
     .from("tarea")
     .select(`
-      id,
-      nombre,
-      descripcion,
-      proyecto_id,
-      creador,
-      encargado,
-      prioridad,
-      estado,
-      fecha_inicio,
-      fecha_final
-    `);
+      *,
+      profiles_encargado:encargado (
+        id,
+        full_name,
+        avatar_url
+      ),
+      profiles_creador:creador (
+        id,
+        full_name,
+        avatar_url
+      )
+    `)
+    .order('fecha_inicio', { ascending: false });
 
   if (error) throw new Error(error.message);
   
-  return tareas || [];
+  const tareasWithFilesAndAvatars = await Promise.all(
+    tareas.map(async (tarea: Tarea) => {
+      let avatarUrl = null;
+      let creadorAvatarUrl = null;
+
+      if (tarea.profiles_encargado?.avatar_url) {
+        const { data: signedUrlData } = await supabase.storage
+          .from("avatars")
+          .createSignedUrl(`users/${tarea.profiles_encargado.avatar_url}`, 3600);
+        avatarUrl = signedUrlData?.signedUrl;
+      }
+
+      if (tarea.profiles_creador?.avatar_url) {
+        const { data: signedUrlData } = await supabase.storage
+          .from("avatars")
+          .createSignedUrl(`users/${tarea.profiles_creador.avatar_url}`, 3600);
+        creadorAvatarUrl = signedUrlData?.signedUrl;
+      }
+
+      let fileUrl = null;
+      if (tarea.file) {
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from("tareas")
+          .createSignedUrl(`tareas/${tarea.file}`, 3600);
+
+        if (signedUrlError || !signedUrlData) {
+          console.error(`Error creando URL firmada para el archivo ${tarea.file}:`, signedUrlError?.message);
+        } else {
+          fileUrl = signedUrlData.signedUrl;
+        }
+      }
+
+      return { 
+        ...tarea, 
+        url: fileUrl, 
+        avatarUrl,
+        creadorAvatarUrl 
+      };
+    })
+  );
+
+  return tareasWithFilesAndAvatars;
 };
 
 export const createTarea = async (
