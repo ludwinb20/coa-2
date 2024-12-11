@@ -14,6 +14,8 @@ import { Project } from "@/types/models";
 import EditClient from "../clients/clients-edit";
 import ProjectEdit from "../projects/project-edit";
 import ProjectDelete from "../projects/project-delete";
+import SimpleButtonRedirect from "./redirect";
+
 
 
 
@@ -127,15 +129,15 @@ export const columnsTarea: ColumnDef<Tarea>[] = [
     },
   },
 
-    {
-    accessorKey: "acciones",
+  {
+    accessorKey: "ver",
     header: () => (
-      <div className="flex justify-center items-center">Acciones</div>
+      <div className="flex justify-center items-center">Ver</div>
     ),
     cell: ({ row }) => {
       return (
         <div className="flex justify-center items-center gap-x-2">
-       
+        <SimpleButtonRedirect id={row.original.id} />
         </div>
       );
     },

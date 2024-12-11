@@ -249,3 +249,46 @@ const loadTareaFiles = async (tareaId: number) => {
   const files = await getTareaFiles(tareaId);
   console.log("Archivos de la tarea:", files);
 };
+
+export const getTareaById = async (id: number): Promise<Tarea> => {
+  const { data: tarea, error } = await supabase
+    .from("tarea")
+    .select(`
+      *,
+      profiles_encargado:encargado (
+        id,
+        full_name,
+        avatar_url
+      ),
+      profiles_creador:creador (
+        id,
+        full_name,
+        avatar_url
+      )
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching tarea:", error);
+    throw new Error(error.message);
+  }
+
+  // Obtener URL firmada para el avatar del encargado
+  if (tarea.profiles_encargado?.avatar_url) {
+    const { data: signedUrlData } = await supabase.storage
+      .from("avatars")
+      .createSignedUrl(`users/${tarea.profiles_encargado.avatar_url}`, 3600);
+    tarea.profiles_encargado.avatar_url = signedUrlData?.signedUrl;
+  }
+
+  // Obtener URL firmada para el avatar del creador
+  if (tarea.profiles_creador?.avatar_url) {
+    const { data: signedUrlData } = await supabase.storage
+      .from("avatars")
+      .createSignedUrl(`users/${tarea.profiles_creador.avatar_url}`, 3600);
+    tarea.profiles_creador.avatar_url = signedUrlData?.signedUrl;
+  }
+
+  return tarea;
+};
