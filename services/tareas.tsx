@@ -112,7 +112,6 @@ export const createTarea = async (
   // Si hay archivos, subirlos y crear registros en tarea_files
   if (files && files.length > 0) {
     const filePromises = files.map(async (file) => {
-      // Subir el archivo
       const result = await uploadFile({ 
         bucket: "tareas", 
         url: "tareas", 
@@ -124,9 +123,8 @@ export const createTarea = async (
         return null;
       }
 
-      // Crear registro en tarea_files
       const { error: fileError } = await supabase
-        .from("tarea_files")
+        .from("tarea_file")
         .insert({
           tarea_id: createdTarea.id,
           file: result.data
@@ -148,39 +146,106 @@ export const createTarea = async (
 
 export const createTareaFile = async ({
   tarea_id,
-  file
+  files
 }: {
   tarea_id: number;
-  file: File;
-}): Promise<{ success: boolean; data?: string }> => {
+  files: File[]
+}): Promise<{ success: boolean; data?: string[] }> => {
   try {
-    // Subir el archivo
-    const uploadResult = await uploadFile({ 
-      bucket: "tareas", 
-      url: "tareas", 
-      file: file 
-    });
-
-    if (!uploadResult.success || !uploadResult.data) {
-      return { success: false };
-    }
-
-    // Crear registro en tarea_files
-    const { error } = await supabase
-      .from("tarea_files")
-      .insert({
-        tarea_id: tarea_id,
-        file: uploadResult.data
+    const uploadPromises = files.map(async (file) => {
+      // Subir cada archivo
+      const uploadResult = await uploadFile({ 
+        bucket: "tareas", 
+        url: "tareas", 
+        file: file 
       });
 
-    if (error) {
-      console.error("Error creating tarea file:", error);
+      if (!uploadResult.success || !uploadResult.data) {
+        console.error(`Error uploading file ${file.name}`);
+        return null;
+      }
+
+      // Crear registro en tarea_file para cada archivo
+      const { error } = await supabase
+        .from("tarea_file")
+        .insert({
+          tarea_id: tarea_id,
+          file: uploadResult.data
+        });
+
+      if (error) {
+        console.error(`Error creating file record for ${file.name}:`, error);
+        return null;
+      }
+
+      return uploadResult.data;
+    });
+
+    // Esperar a que todas las subidas se completen
+    const results = await Promise.all(uploadPromises);
+    
+    // Filtrar resultados nulos y verificar si hubo éxito
+    const successfulUploads = results.filter((result): result is string => result !== null);
+    
+    if (successfulUploads.length === 0) {
       return { success: false };
     }
 
-    return { success: true, data: uploadResult.data };
+    return { 
+      success: true, 
+      data: successfulUploads 
+    };
   } catch (error) {
     console.error("Error in createTareaFile:", error);
     return { success: false };
   }
+};
+
+// Función auxiliar para obtener los archivos de una tarea
+export const getTareaFiles = async (tareaId: number) => {
+  const { data: files, error } = await supabase
+    .from("tarea_file")
+    .select("*")
+    .eq("tarea_id", tareaId);
+
+  if (error) {
+    console.error("Error fetching tarea files:", error);
+    return [];
+  }
+
+  // Crear URLs firmadas para cada archivo
+  const filesWithUrls = await Promise.all(
+    files.map(async (file) => {
+      const { data: signedUrlData } = await supabase.storage
+        .from("tareas")
+        .createSignedUrl(`tareas/${file.file}`, 3600);
+
+      return {
+        ...file,
+        url: signedUrlData?.signedUrl
+      };
+    })
+  );
+
+  return filesWithUrls;
+};
+
+// Ejemplo de uso para subir múltiples archivos
+const handleFileUpload = async (tareaId: number, files: File[]) => {
+  const result = await createTareaFile({
+    tarea_id: tareaId,
+    files: files
+  });
+
+  if (result.success) {
+    console.log("Archivos subidos exitosamente:", result.data);
+  } else {
+    console.error("Error al subir los archivos");
+  }
+};
+
+// Ejemplo de uso para obtener los archivos de una tarea
+const loadTareaFiles = async (tareaId: number) => {
+  const files = await getTareaFiles(tareaId);
+  console.log("Archivos de la tarea:", files);
 };

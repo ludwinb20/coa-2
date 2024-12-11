@@ -28,11 +28,15 @@ import { useQuery } from "@tanstack/react-query";
 import { getProjects } from "@/services/projects";
 import { FileIcon } from "lucide-react";
 import { getUsers } from "@/services/users";
+import { PlusIcon, XIcon } from "lucide-react";
+import { Label } from "../ui/label";
 
 const TareaCreate = () => {
   const { user } = useSession();
   const router = useRouter();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileUploads, setFileUploads] = useState<Array<{ id: number, file: File | null }>>([
+    { id: 1, file: null }
+  ]);
   const [saving, setSaving] = useState<boolean>(false);
 
   const { data: projects } = useQuery({
@@ -94,6 +98,23 @@ const TareaCreate = () => {
     },
   });
 
+  const addFileUpload = () => {
+    const newId = fileUploads.length + 1;
+    setFileUploads([...fileUploads, { id: newId, file: null }]);
+  };
+
+  const removeFileUpload = (id: number) => {
+    if (fileUploads.length > 1) {
+      setFileUploads(fileUploads.filter(upload => upload.id !== id));
+    }
+  };
+
+  const handleFileChange = (id: number, file: File | null) => {
+    setFileUploads(fileUploads.map(upload => 
+      upload.id === id ? { ...upload, file } : upload
+    ));
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) {
       toast.error("Debe iniciar sesión para crear una tarea");
@@ -114,9 +135,11 @@ const TareaCreate = () => {
         fecha_final: values.fecha_final,
       };
 
-      const files = selectedFile ? [selectedFile] : undefined;
+      const files = fileUploads
+        .map(upload => upload.file)
+        .filter((file): file is File => file !== null);
       
-      const tarea = await createTarea(nuevaTarea, files);
+      const tarea = await createTarea(nuevaTarea, files.length > 0 ? files : undefined);
 
       toast.success("Tarea creada exitosamente");
       router.push('/dashboard/tareas');
@@ -359,28 +382,48 @@ const TareaCreate = () => {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6 items-center">
-                <div>
-                  <Dropzone
-                    onDrop={(files) => setSelectedFile(files[0])}
-                    onDelete={() => setSelectedFile(null)}
-                    className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg py-6 px-8 text-center hover:bg-blue-100 transition-colors"
-                    text="Arrastre un archivo aquí o haga click para seleccionar"
-                  />
-                </div>
-                {selectedFile && (
-                  <div className="flex items-center space-x-3 bg-gray-100 p-3 rounded-lg">
-                    <FileIcon className="w-8 h-8 text-blue-500" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">
-                        {selectedFile.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {(selectedFile.size / 1024).toFixed(2)} KB
-                      </p>
-                    </div>
+              <div className="space-y-4">
+                <Label>Archivos adjuntos:</Label>
+                {fileUploads.map((upload) => (
+                  <div key={upload.id} className="relative">
+                    <Dropzone
+                      onDrop={(files) => handleFileChange(upload.id, files[0])}
+                      onDelete={() => handleFileChange(upload.id, null)}
+                      className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg py-4 px-6 text-center hover:bg-blue-100 transition-colors"
+                      text="Arrastre un archivo aquí o haga click para seleccionar"
+                    />
+                    {upload.file && (
+                      <div className="flex items-center space-x-3 bg-gray-100 p-3 rounded-lg mt-2">
+                        <FileIcon className="w-6 h-6 text-blue-500" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">
+                            {upload.file.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {(upload.file.size / 1024).toFixed(2)} KB
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {fileUploads.length > 1 && (
+                      <button
+                        onClick={() => removeFileUpload(upload.id)}
+                        className="absolute -right-2 -top-2 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
+                      >
+                        <XIcon className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
-                )}
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addFileUpload}
+                  className="w-full mt-2"
+                >
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Agregar otro archivo
+                </Button>
               </div>
 
               <div className="flex justify-end">
