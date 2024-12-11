@@ -60,7 +60,7 @@ export const getAusencias = async (id: string | null, rol_id: number | null):Pro
 export const getAbsenceCategories = async (): Promise<AbsenceCategory[]> => {
   try {
     const { data, error } = await supabase
-      .from("absence_categories")
+      .from("ausencia_categorias")
       .select("*")
       .order("created_at", { ascending: false });
 

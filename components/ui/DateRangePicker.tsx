@@ -19,11 +19,15 @@ export function DateRangePicker({
   datePicker,
   setDatePicker,
   text,
+  disabled, 
+  daysToAdd
 }: {
   className?: React.HTMLAttributes<HTMLDivElement>;
   datePicker?: DateRange | undefined;
   setDatePicker?: (date: DateRange | undefined) => void;
   text?: string;
+  disabled?: boolean;
+  daysToAdd?: number | null;
 }) {
   return (
     <div className={cn("grid gap-2", className)}>
@@ -36,6 +40,7 @@ export function DateRangePicker({
               "w-[300px] justify-start text-left font-normal",
               !datePicker && "text-muted-foreground"
             )}
+            disabled={disabled}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {datePicker?.from ? (
@@ -62,6 +67,11 @@ export function DateRangePicker({
               range?.from && range.from.setHours(0, 0, 0, 0);
               range?.to && range.to.setHours(23, 59, 59, 999);
               if (setDatePicker) {
+                if (daysToAdd && range?.from) {
+                  const newToDate = new Date(range.from);
+                  newToDate.setDate(newToDate.getDate() + daysToAdd - 1);
+                  range.to = newToDate;
+              }
                 setDatePicker(range);
               }
             }}

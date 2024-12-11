@@ -16,7 +16,7 @@ const Dropzone = ({
   file,
   className,
   text,
-  onDelete,
+  onDelete
 }: DropzoneProps) => {
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -56,7 +56,7 @@ const Dropzone = ({
 
   return (
     <div {...getRootProps()} className={className}>
-      <input {...getInputProps()} />
+    <input {...getInputProps()} />
       {preview ? (
         <div className="flex flex-col items-center">
           <img

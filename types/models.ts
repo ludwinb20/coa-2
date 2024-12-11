@@ -269,6 +269,8 @@ export interface AbsenceCategory {
   created_at: Date;
   rango: number | null;
   documentacion_requerida: boolean;
+  anticipacion: number | null;
+  maximo_mensual: number | null;
 }
 
 
